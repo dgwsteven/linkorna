@@ -1,3 +1,31 @@
 {
-  "framework": "nextjs"
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "redirects": [
+    {
+      "source": "https://linkorna.ai/:path*",
+      "destination": "https://linkorna.com/:path*",
+      "permanent": true
+    },
+    {
+      "source": "https://www.linkorna.ai/:path*",
+      "destination": "https://linkorna.com/:path*",
+      "permanent": true
+    },
+    {
+      "source": "https://linkorna.de/:path*",
+      "destination": "https://linkorna.com/:path*",
+      "permanent": true
+    },
+    {
+      "source": "https://www.linkorna.de/:path*",
+      "destination": "https://linkorna.com/:path*",
+      "permanent": true
+    },
+    {
+      "source": "https://www.linkorna.com/:path*",
+      "destination": "https://linkorna.com/:path*",
+      "permanent": true
+    }
+  ]
 }
