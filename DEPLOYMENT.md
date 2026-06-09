@@ -23,11 +23,11 @@ The repository should contain this project root.
 
 ```txt
 NEXT_PUBLIC_SUPABASE_URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY
-SUPABASE_SERVICE_ROLE_KEY
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+SUPABASE_SECRET_KEY
 ```
 
-The service role key must stay server-side only. Never expose it in browser code.
+The secret key must stay server-side only. Never expose it in browser code.
 
 ## 3. Vercel
 
@@ -42,8 +42,8 @@ Required for Supabase:
 
 ```txt
 NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+SUPABASE_SECRET_KEY=
 ```
 
 Optional for later AI and payments:
@@ -94,14 +94,14 @@ Included now:
 - Dashboard
 - Six AI employee task pages
 - Task result page
-- Login/register mock pages
+- Supabase-backed login/register foundations
 - Admin mock page
 - Supabase schema
 - Environment variable template
 
 Next implementation step:
 
-- Replace mock login with Supabase Auth.
+- Replace remaining mock task persistence with Supabase tables.
 - Save task input/output rows into Supabase.
 - Add server route for OpenAI-backed task generation.
 - Add plan enforcement.
