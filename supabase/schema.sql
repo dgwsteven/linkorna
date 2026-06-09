@@ -83,6 +83,38 @@ using (
   workspace_id in (select workspace_id from public.profiles where profiles.id = auth.uid())
 );
 
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  new_workspace_id uuid;
+begin
+  insert into public.workspaces (name)
+  values (coalesce(new.raw_user_meta_data->>'company_name', split_part(new.email, '@', 2), 'New LINKORNA Workspace'))
+  returning id into new_workspace_id;
+
+  insert into public.profiles (id, workspace_id, full_name, company_name, role)
+  values (
+    new.id,
+    new_workspace_id,
+    coalesce(new.raw_user_meta_data->>'full_name', ''),
+    coalesce(new.raw_user_meta_data->>'company_name', ''),
+    'owner'
+  );
+
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+
+create trigger on_auth_user_created
+after insert on auth.users
+for each row execute function public.handle_new_user();
+
 insert into public.ai_employees (id, name, plan, description, route) values
   ('german-email', 'German Email Employee', 'Starter', 'Reply to German clients and understand their intent.', '/employees/german-email'),
   ('contract', 'Contract Intelligence Employee', 'Starter', 'Analyze contracts, risks and key clauses.', '/employees/contract'),
