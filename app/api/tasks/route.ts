@@ -2,12 +2,22 @@ import { NextResponse } from "next/server";
 import { employees } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 import { generateTaskOutput } from "@/lib/ai-generation";
+import { formDataToInput } from "@/lib/task-input";
 
 export async function POST(request: Request) {
-  const body = await request.json().catch(() => ({}));
-  const employeeId = typeof body.employeeId === "string" ? body.employeeId : "german-email";
+  const contentType = request.headers.get("content-type") || "";
+  const url = new URL(request.url);
+  const isMultipart = contentType.includes("multipart/form-data");
+  const body = isMultipart ? null : await request.json().catch(() => ({}));
+  const formData = isMultipart ? await request.formData() : null;
+  const formInput = formData ? await formDataToInput(formData) : null;
+  const employeeId =
+    url.searchParams.get("employeeId") ||
+    (typeof body?.employeeId === "string" ? body.employeeId : null) ||
+    (typeof formInput?.employeeId === "string" ? formInput.employeeId : null) ||
+    "german-email";
   const employee = employees.find((item) => item.id === employeeId) ?? employees[0];
-  const input = typeof body.input === "object" && body.input !== null ? body.input : body;
+  const input = formInput || (typeof body.input === "object" && body.input !== null ? body.input : body);
   const output = await generateTaskOutput(employee.id, input);
 
   const supabase = await createClient();

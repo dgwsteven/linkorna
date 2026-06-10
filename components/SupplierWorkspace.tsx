@@ -12,7 +12,7 @@ import {
   Wand2
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { submitEmployeeTask } from "@/app/employees/actions";
+import { EmployeeTaskForm } from "@/components/EmployeeTaskForm";
 import { FormSubmitButton } from "@/components/FormSubmitButton";
 
 const supplierChecklist = [
@@ -197,7 +197,7 @@ export function SupplierWorkspace({ selectedLanguage = "English" }: { selectedLa
         </section>
       </aside>
 
-      <form id="supplier-task-form" action={submitEmployeeTask.bind(null, "supplier")} className="rounded-lg border border-line bg-white shadow-panel">
+      <EmployeeTaskForm id="supplier-task-form" employeeId="supplier" className="rounded-lg border border-line bg-white shadow-panel">
         <input type="hidden" name="language" value={language} />
         <div className="border-b border-line p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -299,7 +299,7 @@ export function SupplierWorkspace({ selectedLanguage = "English" }: { selectedLa
         <div className="flex justify-end border-t border-line p-5">
           <FormSubmitButton idleLabel="Generate Message" pendingLabel="Supplier Communication Employee is working..." />
         </div>
-      </form>
+      </EmployeeTaskForm>
 
       {false && (
       <aside className="space-y-4">

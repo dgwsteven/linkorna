@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import { submitEmployeeTask } from "@/app/employees/actions";
+import { EmployeeTaskForm } from "@/components/EmployeeTaskForm";
 import { FormSubmitButton } from "@/components/FormSubmitButton";
 
 const reviewChecklist = [
@@ -264,7 +264,7 @@ export function ContractWorkspace({ selectedAudience = outputAudiences[0] }: { s
         </section>
       </aside>
 
-      <form id="contract-task-form" action={submitEmployeeTask.bind(null, "contract")} className="rounded-lg border border-line bg-white shadow-panel">
+      <EmployeeTaskForm id="contract-task-form" employeeId="contract" className="rounded-lg border border-line bg-white shadow-panel">
         <input type="hidden" name="audience" value={selectedAudience} />
         <div className="border-b border-line p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -423,7 +423,7 @@ export function ContractWorkspace({ selectedAudience = outputAudiences[0] }: { s
             <FormSubmitButton idleLabel="Review Contract" pendingLabel="Contract Intelligence Employee is working..." />
           </div>
         </div>
-      </form>
+      </EmployeeTaskForm>
 
       {false && (
       <aside className="space-y-4">

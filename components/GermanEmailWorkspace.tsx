@@ -9,7 +9,7 @@ import {
   Wand2
 } from "lucide-react";
 import type { ReactNode } from "react";
-import { submitEmployeeTask } from "@/app/employees/actions";
+import { EmployeeTaskForm } from "@/components/EmployeeTaskForm";
 import { FormSubmitButton } from "@/components/FormSubmitButton";
 
 const quickSignals = [
@@ -130,7 +130,7 @@ export function GermanEmailWorkspace() {
         </section>
       </aside>
 
-      <form id="german-email-task-form" action={submitEmployeeTask.bind(null, "german-email")} className="rounded-lg border border-line bg-white shadow-panel">
+      <EmployeeTaskForm id="german-email-task-form" employeeId="german-email" className="rounded-lg border border-line bg-white shadow-panel">
         <div className="border-b border-line p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -273,7 +273,7 @@ export function GermanEmailWorkspace() {
             <FormSubmitButton idleLabel="Generate Reply" pendingLabel="German Email Employee is working..." />
           </div>
         </div>
-      </form>
+      </EmployeeTaskForm>
 
       {false && (
       <aside className="space-y-4">

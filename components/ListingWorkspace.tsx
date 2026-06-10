@@ -13,7 +13,7 @@ import {
   Wand2
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { submitEmployeeTask } from "@/app/employees/actions";
+import { EmployeeTaskForm } from "@/components/EmployeeTaskForm";
 import { FormSubmitButton } from "@/components/FormSubmitButton";
 
 const marketplaces = [
@@ -604,7 +604,7 @@ export function ListingWorkspace({
         </section>
       </aside>
 
-      <form id="listing-task-form" action={submitEmployeeTask.bind(null, "listing")} className="rounded-lg border border-line bg-white shadow-panel">
+      <EmployeeTaskForm id="listing-task-form" employeeId="listing" className="rounded-lg border border-line bg-white shadow-panel">
         <input type="hidden" name="marketplace" value={marketplace} />
         <input type="hidden" name="language" value={language} />
         <input type="hidden" name="positioning" value={positioning} />
@@ -728,7 +728,7 @@ export function ListingWorkspace({
         <div className="flex justify-end border-t border-line p-5">
           <FormSubmitButton idleLabel="Generate Listing" pendingLabel="E-commerce Listing Employee is working..." />
         </div>
-      </form>
+      </EmployeeTaskForm>
 
       {false && (
       <aside className="space-y-4">

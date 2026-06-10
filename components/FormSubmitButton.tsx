@@ -1,10 +1,10 @@
 "use client";
 
-import { useFormStatus } from "react-dom";
 import { Wand2 } from "lucide-react";
+import { useEmployeeTaskSubmitting } from "@/components/EmployeeTaskForm";
 
 export function FormSubmitButton({ idleLabel, pendingLabel }: { idleLabel: string; pendingLabel?: string }) {
-  const { pending } = useFormStatus();
+  const pending = useEmployeeTaskSubmitting();
 
   return (
     <button

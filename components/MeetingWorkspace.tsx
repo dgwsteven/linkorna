@@ -13,7 +13,7 @@ import {
   Wand2
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { submitEmployeeTask } from "@/app/employees/actions";
+import { EmployeeTaskForm } from "@/components/EmployeeTaskForm";
 import { FormSubmitButton } from "@/components/FormSubmitButton";
 
 const meetingTypes = ["Supplier negotiation", "Client sales meeting", "Internal project meeting", "Product review", "Executive decision meeting", "Other"];
@@ -274,7 +274,7 @@ export function MeetingWorkspace({
         </section>
       </aside>
 
-      <form id="meeting-task-form" action={submitEmployeeTask.bind(null, "meeting")} className="rounded-lg border border-line bg-white shadow-panel">
+      <EmployeeTaskForm id="meeting-task-form" employeeId="meeting" className="rounded-lg border border-line bg-white shadow-panel">
         <input type="hidden" name="audience" value={audience} />
         <input type="hidden" name="detailLevel" value={detailLevel} />
         <div className="border-b border-line p-5">
@@ -353,7 +353,7 @@ export function MeetingWorkspace({
         <div className="flex justify-end border-t border-line p-5">
           <FormSubmitButton idleLabel="Generate Minutes" pendingLabel="Meeting Recorder Employee is working..." />
         </div>
-      </form>
+      </EmployeeTaskForm>
 
       {false && (
       <aside className="space-y-4">
