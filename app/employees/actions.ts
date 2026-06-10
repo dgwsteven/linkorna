@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { buildTaskOutput } from "@/lib/task-output";
+import { generateTaskOutput } from "@/lib/ai-generation";
 import { createClient } from "@/lib/supabase/server";
 
 function formDataToInput(formData: FormData) {
@@ -55,7 +55,7 @@ export async function submitEmployeeTask(employeeId: string, formData: FormData)
   }
 
   const input = formDataToInput(formData);
-  const output = buildTaskOutput(employeeId, input);
+  const output = await generateTaskOutput(employeeId, input);
 
   const { data: task, error } = await supabase
     .from("tasks")

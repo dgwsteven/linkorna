@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import { employees } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
-import { buildTaskOutput } from "@/lib/task-output";
+import { generateTaskOutput } from "@/lib/ai-generation";
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
   const employeeId = typeof body.employeeId === "string" ? body.employeeId : "german-email";
   const employee = employees.find((item) => item.id === employeeId) ?? employees[0];
   const input = typeof body.input === "object" && body.input !== null ? body.input : body;
-  const output = buildTaskOutput(employee.id, input);
+  const output = await generateTaskOutput(employee.id, input);
 
   const supabase = await createClient();
   const {

@@ -74,10 +74,10 @@ export default async function TaskResultPage({ params }: { params: Promise<{ id:
                 <Copy className="h-4 w-4" />
                 Copy {output?.copySectionLabel ?? "Output"}
               </button>
-              <button className="inline-flex h-10 items-center gap-2 rounded-md border border-line bg-white px-3 text-sm font-black text-navy">
+              <Link href={`/api/tasks/${task.id}/word`} className="inline-flex h-10 items-center gap-2 rounded-md border border-line bg-white px-3 text-sm font-black text-navy">
                 <Download className="h-4 w-4" />
                 {output?.downloadLabel ?? "Download Word Report"}
-              </button>
+              </Link>
             </div>
           </div>
           <div className="mt-6 rounded-md bg-mist p-4">

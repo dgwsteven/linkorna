@@ -46,10 +46,19 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 SUPABASE_SECRET_KEY=
 ```
 
-Optional for later AI and payments:
+Required for real AI generation:
 
 ```txt
 OPENAI_API_KEY=
+LINKORNA_OPENAI_MODEL=gpt-5-mini
+LINKORNA_AI_MODEL=openai/gpt-5.4
+```
+
+`OPENAI_API_KEY` enables direct OpenAI generation. If Vercel AI Gateway is enabled for the project, `LINKORNA_AI_MODEL` can be used without a direct provider key. If no AI credential is available, LINKORNA falls back to structured rule-based demo output so the product flow still works.
+
+Optional for later payments:
+
+```txt
 STRIPE_SECRET_KEY=
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 STRIPE_WEBHOOK_SECRET=
@@ -57,7 +66,7 @@ STRIPE_WEBHOOK_SECRET=
 
 After adding or changing environment variables, redeploy the project.
 
-## 4. OpenAI API key, later
+## 4. OpenAI API key
 
 Create an API key at:
 
@@ -98,10 +107,12 @@ Included now:
 - Admin mock page
 - Supabase schema
 - Environment variable template
+- Supabase task persistence
+- Real AI generation path with safe fallback
+- Word report download for saved task results
 
 Next implementation step:
 
-- Replace remaining mock task persistence with Supabase tables.
-- Save task input/output rows into Supabase.
-- Add server route for OpenAI-backed task generation.
 - Add plan enforcement.
+- Add full file text extraction for uploaded documents.
+- Add copy-to-clipboard client behavior on task results.
