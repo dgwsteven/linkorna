@@ -35,6 +35,8 @@ const outputAudiences = [
   "Other"
 ];
 
+const operatorLanguages = ["Chinese", "English", "German"];
+
 const previewByAudience: Record<string, { note: string; sections: { label: string; body: string[] }[] }> = {
   "Chinese internal team - Chinese risk memo": {
     note: "Internal version: direct, risk-oriented, suitable for management and operations review.",
@@ -222,6 +224,14 @@ export function ContractWorkspace({ selectedAudience = outputAudiences[0] }: { s
         <section className="rounded-lg border border-line bg-white p-5 shadow-sm">
           <h3 className="text-sm font-black text-navy">Review Settings</h3>
           <div className="mt-4 grid gap-4">
+            <label className="grid gap-2">
+              <span className="label">My language</span>
+              <select form="contract-task-form" name="operatorLanguage" className="field" defaultValue="Chinese">
+                {operatorLanguages.map((item) => (
+                  <option key={item}>{item}</option>
+                ))}
+              </select>
+            </label>
             <label className="grid gap-2">
               <span className="label">Review objective</span>
               <select form="contract-task-form" name="reviewObjective" className="field">

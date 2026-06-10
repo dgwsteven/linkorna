@@ -60,14 +60,7 @@ export function EmployeeTaskForm({
         accessToken = refreshedSession?.access_token;
       }
 
-      if (!accessToken) {
-        setError(`Browser login session is missing on ${currentOrigin}. Please log out and log in again on linkorna.com.`);
-        return;
-      }
-
-      const authHeaders = {
-        Authorization: `Bearer ${accessToken}`
-      };
+      const authHeaders = accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined;
 
       const authResponse = await fetch("/api/auth/status", {
         method: "GET",
@@ -78,7 +71,7 @@ export function EmployeeTaskForm({
       const authStatus = await authResponse.json().catch(() => null);
 
       if (!authStatus?.authenticated) {
-        setError(`Login check failed on ${currentOrigin}. Please open /api/auth/status in the same tab. Current response: ${JSON.stringify(authStatus)}`);
+        setError(`Your login session is not active on ${currentOrigin}. Please open Login in another tab, then return here and click Generate again. Current response: ${JSON.stringify(authStatus)}`);
         return;
       }
 
@@ -90,7 +83,7 @@ export function EmployeeTaskForm({
         method: "POST",
         body: formData,
         credentials: "same-origin",
-        headers: authHeaders
+        ...(authHeaders ? { headers: authHeaders } : {})
       });
 
       const payload = await response.json().catch(() => null);

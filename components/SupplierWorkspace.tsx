@@ -23,6 +23,7 @@ const supplierChecklist = [
 ];
 
 const targetLanguages = ["English", "German", "Chinese", "Other"];
+const operatorLanguages = ["Chinese", "English", "German"];
 
 const diagnosisByLanguage: Record<string, string[]> = {
   English: [
@@ -165,6 +166,14 @@ export function SupplierWorkspace({ selectedLanguage = "English" }: { selectedLa
                 <option>Discuss packaging and labeling</option>
                 <option>Handle quality issue</option>
                 <option>Other</option>
+              </select>
+            </label>
+            <label className="grid gap-2">
+              <span className="label">My language</span>
+              <select form="supplier-task-form" name="operatorLanguage" className="field" defaultValue="Chinese">
+                {operatorLanguages.map((item) => (
+                  <option key={item}>{item}</option>
+                ))}
               </select>
             </label>
             <label className="grid gap-2">

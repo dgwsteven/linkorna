@@ -81,6 +81,7 @@ function readableLines(text: string, maxLines = 8) {
 function contractFallbackOutput(input: Record<string, unknown>, fallback: GeneratedTaskOutput, reason: unknown): GeneratedTaskOutput {
   console.error("Contract AI generation failed, using text-based fallback", reason);
   const audience = stringValue(input, "audience", "Chinese internal team - Chinese risk memo");
+  const operatorLanguage = stringValue(input, "operatorLanguage", audience.includes("German") ? "German" : audience.includes("English") ? "English" : "Chinese");
   const objective = stringValue(input, "reviewObjective", "Pre-signing risk review");
   const riskTolerance = stringValue(input, "riskTolerance", "Balanced business review");
   const material = contractMaterial(input);
@@ -101,8 +102,8 @@ function contractFallbackOutput(input: Record<string, unknown>, fallback: Genera
     };
   }
 
-  const isGerman = audience.includes("German");
-  const isEnglish = audience.includes("English");
+  const isGerman = operatorLanguage === "German";
+  const isEnglish = operatorLanguage === "English";
   const diagnosisLabel = isGerman ? "Vertragsdiagnose" : isEnglish ? "Contract diagnosis" : "合同诊断";
   const actionLabel = isGerman ? "Klauselbezogene Pruefpunkte" : isEnglish ? "Clause-level review points" : "逐条审查要点";
   const wordingLabel = isGerman ? "Kundenfreundliche Formulierung" : isEnglish ? "Client-facing wording" : "对外沟通措辞";
@@ -190,11 +191,11 @@ function employeeBrief(employeeId: string) {
 
   const briefs: Record<string, string> = {
     "german-email":
-      "German Email Employee. Read the original German client email and business context. The direct reply section must be written in German so the user can copy it into email. If the output package mentions Chinese, or unless the user clearly asks otherwise, write the explanation, diagnosis, intent analysis, risk/opportunity notes and next steps in Chinese for the Chinese-speaking operator.",
+      "German Email Employee. Read the original German client email and business context. The direct reply section must be written in German so the user can copy it into email. If operatorLanguage/My language is provided, write explanation, diagnosis, intent analysis, risk/opportunity notes and next steps in that language.",
     contract:
-      "Contract Intelligence Employee. Review uploaded/pasted contract material. The output audience controls language and tone. Diagnosis should stay concise, but the output report can be detailed with clause-level actions and client-facing wording.",
+      "Contract Intelligence Employee. Review uploaded/pasted contract material. The output audience controls client-facing language and tone. If operatorLanguage/My language is provided, write internal diagnosis, input summary, key points and recommended next actions in that language. Diagnosis should stay concise, but the output report can be detailed with clause-level actions and client-facing wording.",
     supplier:
-      "Supplier Communication Employee. Generate supplier-ready communication in the selected target language. Do not force a rigid template. Adapt the message to the user's task, product, quantity, timeline, red lines and selected communication goal. The first output section must be the supplier email itself, written as a natural business email that emphasizes the user's concrete priorities. Then explain key points for the user and recommend next actions.",
+      "Supplier Communication Employee. Generate supplier-ready communication in the selected target language/language. Do not force a rigid template. Adapt the message to the user's task, product, quantity, timeline, red lines and selected communication goal. The first output section must be Supplier email and must be written in the target language so it can be copied to the supplier. If operatorLanguage/My language is provided, write input summary, key points, recommended next actions and diagnostic guidance in that language for the user.",
     listing:
       "E-commerce Listing Employee. Generate marketplace-ready listing copy. Platform, target language and positioning must affect strategy, title, bullets, description, keywords and FAQ. Do not include improvement notes that imply the output is unfinished.",
     competitor:
@@ -264,7 +265,7 @@ export async function generateTaskOutput(employeeId: string, input: Record<strin
     const { text } = await generateText({
       model: getModel(employeeId),
       system: employeeBrief(employeeId),
-      prompt: `Create the task output from this submitted form data:\n${safeInputForPrompt(input)}\n\nReturn JSON with exactly this shape:\n{\n  "title": "short task title",\n  "summary": "one concise summary sentence",\n  "copySectionLabel": "which section should be copied by the primary copy button",\n  "downloadLabel": "Download Word Report or Download Word Version",\n  "sections": [\n    { "label": "section title", "body": "full useful section content" }\n  ]\n}\n\nQuality rules:\n- Respect selected language/audience/positioning/detail level.\n- Write enough detail to be genuinely useful for a paying business user.\n- Include the diagnostic guidance, key points, recommended next actions, and final usable output that would normally appear in the employee preview.\n- Keep diagnosis-style sections concise when appropriate.\n- For supplier messages, vary the email based on communication goal, product, timeline, quantity and requirements. Avoid generic RFQ boilerplate when the user gave specific priorities.\n- For contract and competitor tasks, analyze only the submitted material. If a link cannot be opened, say what can be inferred from the pasted link/context and what the user should add next.\n- Do not mention that you are an AI model.\n- Do not include markdown code fences.`,
+      prompt: `Create the task output from this submitted form data:\n${safeInputForPrompt(input)}\n\nReturn JSON with exactly this shape:\n{\n  "title": "short task title",\n  "summary": "one concise summary sentence",\n  "copySectionLabel": "which section should be copied by the primary copy button",\n  "downloadLabel": "Download Word Report or Download Word Version",\n  "sections": [\n    { "label": "section title", "body": "full useful section content" }\n  ]\n}\n\nQuality rules:\n- Respect selected language/audience/positioning/detail level.\n- If the submitted form includes operatorLanguage or My language, all user-facing analysis sections such as Input Summary, Key Points, Recommended Next Actions and Diagnostic Guidance must be written in that language.\n- Supplier email sections must be written in the selected target language/language, while the explanation sections must follow operatorLanguage.\n- German Email reply sections must be written in German, while explanation sections must follow operatorLanguage.\n- Contract client-facing comments must follow the selected output audience, while internal analysis sections must follow operatorLanguage.\n- Write enough detail to be genuinely useful for a paying business user.\n- Include the diagnostic guidance, key points, recommended next actions, and final usable output that would normally appear in the employee preview.\n- Keep diagnosis-style sections concise when appropriate.\n- For supplier messages, vary the email based on communication goal, product, timeline, quantity and requirements. Avoid generic RFQ boilerplate when the user gave specific priorities.\n- For contract and competitor tasks, analyze only the submitted material. If a link cannot be opened, say what can be inferred from the pasted link/context and what the user should add next.\n- Do not mention that you are an AI model.\n- Do not include markdown code fences.`,
       maxOutputTokens: strongEmployees.has(employeeId) ? 3500 : 2500,
       abortSignal: AbortSignal.timeout(strongEmployees.has(employeeId) ? 60000 : 35000)
     });

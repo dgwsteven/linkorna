@@ -48,6 +48,8 @@ const checklist = [
   "Follow-up task list for the sales team"
 ];
 
+const operatorLanguages = ["Chinese", "English", "German"];
+
 function ToneBadge({ tone, children }: { tone: string; children: ReactNode }) {
   const classes =
     tone === "green"
@@ -86,6 +88,14 @@ export function GermanEmailWorkspace() {
         <section className="rounded-lg border border-line bg-white p-5 shadow-sm">
           <h3 className="text-sm font-black text-navy">Reply Settings</h3>
           <div className="mt-4 grid gap-4">
+            <label className="grid gap-2">
+              <span className="label">My language</span>
+              <select form="german-email-task-form" name="operatorLanguage" className="field" defaultValue="Chinese">
+                {operatorLanguages.map((item) => (
+                  <option key={item}>{item}</option>
+                ))}
+              </select>
+            </label>
             <label className="grid gap-2">
               <span className="label">Reply objective</span>
               <select form="german-email-task-form" name="replyObjective" className="field">

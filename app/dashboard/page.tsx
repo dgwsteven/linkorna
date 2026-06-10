@@ -15,6 +15,11 @@ type TaskRow = {
   created_at: string;
 };
 
+type UsageTaskRow = {
+  employee_id: string;
+  created_at: string;
+};
+
 type WorkspaceRow = {
   name: string | null;
   plan: PlanName | null;
@@ -28,6 +33,24 @@ function employeeName(employeeId: string) {
 function hasFullEmployeeAccess(email?: string | null) {
   return email?.toLowerCase() === "s.dai@choicell.de";
 }
+
+function dayKey(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function shortDayLabel(key: string) {
+  const date = new Date(`${key}T00:00:00.000Z`);
+  return `${date.getUTCDate()}/${date.getUTCMonth() + 1}`;
+}
+
+const usageColors: Record<string, string> = {
+  "german-email": "bg-blue",
+  contract: "bg-navy",
+  supplier: "bg-accent",
+  listing: "bg-emerald-500",
+  competitor: "bg-amber",
+  meeting: "bg-slate-500"
+};
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -59,8 +82,11 @@ export default async function DashboardPage() {
   const monthStart = new Date();
   monthStart.setUTCDate(1);
   monthStart.setUTCHours(0, 0, 0, 0);
+  const usageStart = new Date();
+  usageStart.setUTCDate(usageStart.getUTCDate() - 29);
+  usageStart.setUTCHours(0, 0, 0, 0);
 
-  const [{ count: monthlyTaskCount }, { count: completedTaskCount }] = await Promise.all([
+  const [{ count: monthlyTaskCount }, { count: completedTaskCount }, { data: usageTasks }] = await Promise.all([
     workspaceId
       ? supabase
           .from("tasks")
@@ -74,7 +100,16 @@ export default async function DashboardPage() {
           .select("id", { count: "exact", head: true })
           .eq("workspace_id", workspaceId)
           .eq("status", "completed")
-      : Promise.resolve({ count: 0 })
+      : Promise.resolve({ count: 0 }),
+    workspaceId
+      ? supabase
+          .from("tasks")
+          .select("employee_id,created_at")
+          .eq("workspace_id", workspaceId)
+          .gte("created_at", usageStart.toISOString())
+          .order("created_at", { ascending: true })
+          .returns<UsageTaskRow[]>()
+      : Promise.resolve({ data: [] })
   ]);
 
   const tasks = recentTasks ?? [];
@@ -85,6 +120,30 @@ export default async function DashboardPage() {
   const completedCount = completedTaskCount ?? 0;
   const usedThisMonth = monthlyTaskCount ?? 0;
   const unlockedEmployees = fullAccess ? employees.length : employees.filter((employee) => employee.plan === "Starter").length;
+  const usageDays = Array.from({ length: 30 }, (_, index) => {
+    const date = new Date(usageStart);
+    date.setUTCDate(usageStart.getUTCDate() + index);
+    const key = dayKey(date);
+    return { key, label: shortDayLabel(key), counts: {} as Record<string, number>, total: 0 };
+  });
+  const usageByDay = new Map(usageDays.map((day) => [day.key, day]));
+
+  for (const task of usageTasks ?? []) {
+    const key = dayKey(new Date(task.created_at));
+    const day = usageByDay.get(key);
+    if (!day) continue;
+    day.counts[task.employee_id] = (day.counts[task.employee_id] ?? 0) + 1;
+    day.total += 1;
+  }
+
+  const maxDailyUsage = Math.max(1, ...usageDays.map((day) => day.total));
+  const employeeUsageTotals = employees
+    .map((employee) => ({
+      ...employee,
+      total: usageDays.reduce((sum, day) => sum + (day.counts[employee.id] ?? 0), 0)
+    }))
+    .filter((employee) => employee.total > 0)
+    .sort((a, b) => b.total - a.total);
 
   return (
     <main className="grid bg-mist lg:grid-cols-[260px_1fr]">
@@ -133,16 +192,58 @@ export default async function DashboardPage() {
         <div className="mt-5 grid gap-5 lg:grid-cols-[1fr_360px]">
           <div className="rounded-lg border border-line bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between">
-              <h2 className="font-black text-navy">Monthly usage</h2>
-              <span className="text-sm font-bold text-steel">Live tasks</span>
+              <div>
+                <h2 className="font-black text-navy">AI employee usage</h2>
+                <p className="mt-1 text-sm text-steel">Daily task volume over the last 30 days</p>
+              </div>
+              <span className="text-sm font-bold text-steel">{usageDays.reduce((sum, day) => sum + day.total, 0)} tasks</span>
             </div>
-            <div className="mt-6 flex h-48 items-end gap-3">
-              {[18, 28, 35, 42, 55, 62, 74, 82].map((height, index) => (
-                <div key={index} className="flex flex-1 flex-col items-center gap-2">
-                  <div className={`w-full rounded-t ${index % 3 === 0 ? "bg-accent" : "bg-blue"}`} style={{ height: `${height}%` }} />
-                  <span className="text-xs font-bold text-steel">W{index + 1}</span>
+            <div className="mt-6 flex h-52 items-end gap-1.5 sm:gap-2">
+              {usageDays.map((day, index) => {
+                const height = Math.max(day.total ? 14 : 2, (day.total / maxDailyUsage) * 100);
+                return (
+                  <div key={day.key} className="group flex min-w-0 flex-1 flex-col items-center gap-2">
+                    <div className="relative flex h-44 w-full items-end rounded-t bg-slate-100">
+                      <div className="flex w-full flex-col justify-end overflow-hidden rounded-t" style={{ height: `${height}%` }}>
+                        {day.total ? (
+                          employees.map((employee) => {
+                            const count = day.counts[employee.id] ?? 0;
+                            if (!count) return null;
+                            return (
+                              <div
+                                key={employee.id}
+                                className={usageColors[employee.id] || "bg-steel"}
+                                style={{ height: `${Math.max(12, (count / day.total) * 100)}%` }}
+                                title={`${employee.name}: ${count}`}
+                              />
+                            );
+                          })
+                        ) : (
+                          <div className="h-full bg-line" />
+                        )}
+                      </div>
+                      <div className="pointer-events-none absolute bottom-full left-1/2 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded bg-navy px-2 py-1 text-xs font-bold text-white group-hover:block">
+                        {day.label}: {day.total}
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold text-steel">{index % 5 === 0 || index === 29 ? day.label : ""}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-5 flex flex-wrap gap-3">
+              {employeeUsageTotals.length ? (
+                employeeUsageTotals.map((employee) => (
+                  <div key={employee.id} className="flex items-center gap-2 rounded-md border border-line bg-mist px-2.5 py-1.5 text-xs font-bold text-graphite">
+                    <span className={`h-2.5 w-2.5 rounded-sm ${usageColors[employee.id] || "bg-steel"}`} />
+                    {employee.name}: {employee.total}
+                  </div>
+                ))
+              ) : (
+                <div className="rounded-md border border-line bg-mist px-3 py-2 text-sm font-bold text-steel">
+                  No tasks in the last 30 days yet.
                 </div>
-              ))}
+              )}
             </div>
           </div>
           <div id="tasks" className="rounded-lg border border-line bg-white p-5 shadow-sm">

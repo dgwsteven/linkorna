@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { createClient } from "@/lib/supabase/client";
 
 export function LoginForm({ message, next = "/dashboard" }: { message?: string; next?: string }) {
   const router = useRouter();
@@ -19,16 +18,20 @@ export function LoginForm({ message, next = "/dashboard" }: { message?: string; 
     setError("");
     setLoading(true);
 
-    const supabase = createClient();
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+      credentials: "same-origin"
+    });
+    const payload = await response.json().catch(() => null);
 
-    if (signInError) {
-      setError(signInError.message);
+    if (!response.ok) {
+      setError(payload?.error || "Login failed.");
       setLoading(false);
       return;
     }
 
-    await fetch("/api/auth/status", { cache: "no-store", credentials: "same-origin" }).catch(() => null);
     router.refresh();
     router.push(next.startsWith("/") ? next : "/dashboard");
   }

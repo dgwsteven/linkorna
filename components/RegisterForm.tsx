@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { createClient } from "@/lib/supabase/client";
 
 export function RegisterForm({ message }: { message?: string }) {
   const router = useRouter();
@@ -21,20 +20,16 @@ export function RegisterForm({ message }: { message?: string }) {
     setError("");
     setLoading(true);
 
-    const supabase = createClient();
-    const { error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          company_name: companyName,
-          primary_use_case: useCase
-        }
-      }
+    const response = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ companyName, email, password, useCase }),
+      credentials: "same-origin"
     });
+    const payload = await response.json().catch(() => null);
 
-    if (signUpError) {
-      setError(signUpError.message);
+    if (!response.ok) {
+      setError(payload?.error || "Registration failed.");
       setLoading(false);
       return;
     }
