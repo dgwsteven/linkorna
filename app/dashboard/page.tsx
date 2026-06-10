@@ -15,6 +15,7 @@ type TaskRow = {
 };
 
 type WorkspaceRow = {
+  name: string | null;
   plan: PlanName | null;
   monthly_task_limit: number | null;
 };
@@ -37,12 +38,12 @@ export default async function DashboardPage() {
     redirect("/login?message=Please%20login%20before%20opening%20the%20dashboard.");
   }
 
-  const { data: profile } = await supabase.from("profiles").select("workspace_id, full_name").eq("id", user.id).single();
+  const { data: profile } = await supabase.from("profiles").select("workspace_id, full_name, company_name").eq("id", user.id).single();
   const workspaceId = profile?.workspace_id;
 
   const [{ data: workspace }, { data: recentTasks }] = await Promise.all([
     workspaceId
-      ? supabase.from("workspaces").select("plan, monthly_task_limit").eq("id", workspaceId).single<WorkspaceRow>()
+      ? supabase.from("workspaces").select("name, plan, monthly_task_limit").eq("id", workspaceId).single<WorkspaceRow>()
       : Promise.resolve({ data: null }),
     workspaceId
       ? supabase
@@ -58,6 +59,7 @@ export default async function DashboardPage() {
   const tasks = recentTasks ?? [];
   const fullAccess = hasFullEmployeeAccess(user.email);
   const plan = fullAccess ? "Executive" : workspace?.plan ?? "Starter";
+  const displayName = profile?.company_name || workspace?.name || profile?.full_name || "LINKORNA";
   const monthlyLimit = workspace?.monthly_task_limit ?? 80;
   const completedCount = tasks.filter((task) => task.status === "completed").length;
   const unlockedEmployees = fullAccess ? employees.length : employees.filter((employee) => employee.plan === "Starter").length;
@@ -68,7 +70,7 @@ export default async function DashboardPage() {
       <section className="p-4 sm:p-6 lg:p-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-black text-navy">Welcome back, {profile?.full_name || "LINKORNA team"}</h1>
+            <h1 className="text-3xl font-black text-navy">Welcome back, {displayName}</h1>
             <p className="mt-2 text-steel">Manage cross-border business tasks across your AI workforce.</p>
           </div>
           <div className="rounded-lg border border-line bg-white p-4 shadow-sm">

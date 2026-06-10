@@ -73,7 +73,7 @@ export async function submitEmployeeTask(employeeId: string, formData: FormData)
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login?message=Please%20login%20before%20generating%20a%20task.");
+    redirect(`/login?message=Please%20login%20before%20generating%20a%20task.&next=/employees/${employeeId}`);
   }
 
   const { data: profile, error: profileError } = await supabase

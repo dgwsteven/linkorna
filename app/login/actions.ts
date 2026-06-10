@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
 function encoded(message: string) {
@@ -10,6 +11,7 @@ function encoded(message: string) {
 export async function login(formData: FormData) {
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
+  const next = String(formData.get("next") ?? "/dashboard");
 
   if (!email || !password) {
     redirect(`/login?message=${encoded("Please enter your email and password.")}`);
@@ -22,5 +24,6 @@ export async function login(formData: FormData) {
     redirect(`/login?message=${encoded(error.message)}`);
   }
 
-  redirect("/dashboard");
+  revalidatePath("/", "layout");
+  redirect(next.startsWith("/") ? next : "/dashboard");
 }
