@@ -51,7 +51,14 @@ export function EmployeeTaskForm({
       const {
         data: { session }
       } = await supabase.auth.getSession();
-      const accessToken = session?.access_token;
+      let accessToken = session?.access_token;
+
+      if (!accessToken) {
+        const {
+          data: { session: refreshedSession }
+        } = await supabase.auth.refreshSession();
+        accessToken = refreshedSession?.access_token;
+      }
 
       if (!accessToken) {
         setError(`Browser login session is missing on ${currentOrigin}. Please log out and log in again on linkorna.com.`);

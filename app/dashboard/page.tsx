@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { LogOut } from "lucide-react";
 import { EmployeeCard } from "@/components/EmployeeCard";
 import { PlanBadge } from "@/components/PlanBadge";
 import { Sidebar } from "@/components/Sidebar";
@@ -55,13 +56,34 @@ export default async function DashboardPage() {
           .returns<TaskRow[]>()
       : Promise.resolve({ data: [] })
   ]);
+  const monthStart = new Date();
+  monthStart.setUTCDate(1);
+  monthStart.setUTCHours(0, 0, 0, 0);
+
+  const [{ count: monthlyTaskCount }, { count: completedTaskCount }] = await Promise.all([
+    workspaceId
+      ? supabase
+          .from("tasks")
+          .select("id", { count: "exact", head: true })
+          .eq("workspace_id", workspaceId)
+          .gte("created_at", monthStart.toISOString())
+      : Promise.resolve({ count: 0 }),
+    workspaceId
+      ? supabase
+          .from("tasks")
+          .select("id", { count: "exact", head: true })
+          .eq("workspace_id", workspaceId)
+          .eq("status", "completed")
+      : Promise.resolve({ count: 0 })
+  ]);
 
   const tasks = recentTasks ?? [];
   const fullAccess = hasFullEmployeeAccess(user.email);
   const plan = fullAccess ? "Executive" : workspace?.plan ?? "Starter";
   const displayName = profile?.company_name || workspace?.name || profile?.full_name || "LINKORNA";
   const monthlyLimit = workspace?.monthly_task_limit ?? 80;
-  const completedCount = tasks.filter((task) => task.status === "completed").length;
+  const completedCount = completedTaskCount ?? 0;
+  const usedThisMonth = monthlyTaskCount ?? 0;
   const unlockedEmployees = fullAccess ? employees.length : employees.filter((employee) => employee.plan === "Starter").length;
 
   return (
@@ -73,14 +95,20 @@ export default async function DashboardPage() {
             <h1 className="text-3xl font-black text-navy">Welcome back, {displayName}</h1>
             <p className="mt-2 text-steel">Manage cross-border business tasks across your AI workforce.</p>
           </div>
-          <div className="rounded-lg border border-line bg-white p-4 shadow-sm">
-            <div className="text-xs font-black uppercase text-steel">Current plan</div>
-            <div className="mt-2 flex items-center gap-3">
-              <PlanBadge plan={plan} />
-              <span className="text-sm font-bold text-graphite">
-                {tasks.length} / {monthlyLimit} tasks used
-              </span>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="rounded-lg border border-line bg-white p-4 shadow-sm">
+              <div className="text-xs font-black uppercase text-steel">Current plan</div>
+              <div className="mt-2 flex items-center gap-3">
+                <PlanBadge plan={plan} />
+                <span className="text-sm font-bold text-graphite">
+                  {usedThisMonth} / {monthlyLimit} tasks used
+                </span>
+              </div>
             </div>
+            <Link href="/logout" className="inline-flex h-11 items-center gap-2 rounded-md border border-line bg-white px-4 text-sm font-black text-navy shadow-sm">
+              <LogOut className="h-4 w-4" />
+              Logout
+            </Link>
           </div>
         </div>
 
