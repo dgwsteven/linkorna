@@ -4,7 +4,43 @@ import { redirect } from "next/navigation";
 import { generateTaskOutput } from "@/lib/ai-generation";
 import { createClient } from "@/lib/supabase/server";
 
-function formDataToInput(formData: FormData) {
+async function extractFileValue(file: File) {
+  const base = {
+    name: file.name,
+    size: file.size,
+    type: file.type
+  };
+
+  try {
+    const lowerName = file.name.toLowerCase();
+    const buffer = Buffer.from(await file.arrayBuffer());
+
+    if (lowerName.endsWith(".docx")) {
+      const mammoth = await import("mammoth");
+      const result = await mammoth.extractRawText({ buffer });
+      return { ...base, extractedText: result.value.slice(0, 30000) };
+    }
+
+    if (lowerName.endsWith(".pdf")) {
+      const { PDFParse } = await import("pdf-parse");
+      const parser = new PDFParse({ data: buffer });
+      const result = await parser.getText();
+      await parser.destroy();
+      return { ...base, extractedText: result.text.slice(0, 30000) };
+    }
+
+    const text = buffer.toString("utf8");
+    return { ...base, extractedText: text.slice(0, 30000) };
+  } catch (error) {
+    console.error("File extraction failed", error);
+    return {
+      ...base,
+      extractionError: "Could not extract file text. Ask the user to paste the relevant contract text."
+    };
+  }
+}
+
+async function formDataToInput(formData: FormData) {
   const input: Record<string, unknown> = {};
 
   for (const [key, item] of Array.from(formData.entries())) {
@@ -20,11 +56,7 @@ function formDataToInput(formData: FormData) {
 
     if (item instanceof File) {
       if (item.name) {
-        addValue({
-          name: item.name,
-          size: item.size,
-          type: item.type
-        });
+        addValue(await extractFileValue(item));
       }
       continue;
     }
@@ -54,7 +86,7 @@ export async function submitEmployeeTask(employeeId: string, formData: FormData)
     redirect("/dashboard?message=Workspace%20profile%20not%20found.");
   }
 
-  const input = formDataToInput(formData);
+  const input = await formDataToInput(formData);
   const output = await generateTaskOutput(employeeId, input);
 
   const { data: task, error } = await supabase

@@ -39,7 +39,7 @@ function employeeBrief(employeeId: string) {
 
   const briefs: Record<string, string> = {
     "german-email":
-      "German Email Employee. Read the original German client email and business context. Produce a German reply the user can copy directly, plus a concise explanation for a Chinese-speaking operator, intent analysis, risk/opportunity notes, and next step.",
+      "German Email Employee. Read the original German client email and business context. The direct reply section must be written in German so the user can copy it into email. If the output package mentions Chinese, or unless the user clearly asks otherwise, write the explanation, diagnosis, intent analysis, risk/opportunity notes and next steps in Chinese for the Chinese-speaking operator.",
     contract:
       "Contract Intelligence Employee. Review uploaded/pasted contract material. The output audience controls language and tone. Diagnosis should stay concise, but the output report can be detailed with clause-level actions and client-facing wording.",
     supplier:
@@ -97,7 +97,7 @@ export async function generateTaskOutput(employeeId: string, input: Record<strin
     const { text } = await generateText({
       model: getModel(employeeId),
       system: employeeBrief(employeeId),
-      prompt: `Create the task output from this submitted form data:\n${safeInputForPrompt(input)}\n\nReturn JSON with exactly this shape:\n{\n  "title": "short task title",\n  "summary": "one concise summary sentence",\n  "copySectionLabel": "which section should be copied by the primary copy button",\n  "downloadLabel": "Download Word Report or Download Word Version",\n  "sections": [\n    { "label": "section title", "body": "full useful section content" }\n  ]\n}\n\nQuality rules:\n- Respect selected language/audience/positioning/detail level.\n- Write enough detail to be genuinely useful for a paying business user.\n- Keep diagnosis-style sections concise when appropriate.\n- Do not mention that you are an AI model.\n- Do not include markdown code fences.`,
+      prompt: `Create the task output from this submitted form data:\n${safeInputForPrompt(input)}\n\nReturn JSON with exactly this shape:\n{\n  "title": "short task title",\n  "summary": "one concise summary sentence",\n  "copySectionLabel": "which section should be copied by the primary copy button",\n  "downloadLabel": "Download Word Report or Download Word Version",\n  "sections": [\n    { "label": "section title", "body": "full useful section content" }\n  ]\n}\n\nQuality rules:\n- Respect selected language/audience/positioning/detail level.\n- Write enough detail to be genuinely useful for a paying business user.\n- Include the diagnostic guidance, key points, recommended next actions, and final usable output that would normally appear in the employee preview.\n- Keep diagnosis-style sections concise when appropriate.\n- Do not mention that you are an AI model.\n- Do not include markdown code fences.`,
       maxOutputTokens: 2500
     });
 

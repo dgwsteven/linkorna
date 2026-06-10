@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { submitEmployeeTask } from "@/app/employees/actions";
+import { FormSubmitButton } from "@/components/FormSubmitButton";
 
 const meetingTypes = ["Supplier negotiation", "Client sales meeting", "Internal project meeting", "Product review", "Executive decision meeting", "Other"];
 const outputAudiences = ["Chinese internal team", "German client follow-up", "English client follow-up", "Bilingual Chinese + English", "Bilingual Chinese + German", "Other"];
@@ -204,7 +205,7 @@ export function MeetingWorkspace({
   };
 
   return (
-    <div className="mt-6 grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)_360px]">
+    <div className="mt-6 grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
       <aside className="space-y-4">
         <section className="rounded-lg border border-line bg-white p-5 shadow-panel">
           <div className="flex items-center gap-3">
@@ -350,13 +351,11 @@ export function MeetingWorkspace({
         </div>
 
         <div className="flex justify-end border-t border-line p-5">
-          <button type="submit" className="inline-flex h-11 items-center gap-2 rounded-md bg-blue px-5 text-sm font-black text-white">
-            <Wand2 className="h-4 w-4" />
-            Generate Minutes
-          </button>
+          <FormSubmitButton idleLabel="Generate Minutes" pendingLabel="Meeting Recorder Employee is working..." />
         </div>
       </form>
 
+      {false && (
       <aside className="space-y-4">
         <section className="min-h-[320px] rounded-lg border border-line bg-white p-5 shadow-sm">
           <h3 className="text-sm font-black text-navy">Meeting Diagnosis</h3>
@@ -406,6 +405,7 @@ export function MeetingWorkspace({
           </div>
         </section>
       </aside>
+      )}
     </div>
   );
 }

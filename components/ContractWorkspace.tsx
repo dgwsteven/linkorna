@@ -14,7 +14,9 @@ import {
   Wand2
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useRef, useState } from "react";
 import { submitEmployeeTask } from "@/app/employees/actions";
+import { FormSubmitButton } from "@/components/FormSubmitButton";
 
 const reviewChecklist = [
   "Payment, delivery and acceptance terms",
@@ -184,11 +186,18 @@ diagnosisByAudience.Other = diagnosisByAudience["Chinese internal team - Chinese
 
 export function ContractWorkspace({ selectedAudience = outputAudiences[0] }: { selectedAudience?: string }) {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const contractTextRef = useRef<HTMLTextAreaElement>(null);
+  const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
   const preview = previewByAudience[selectedAudience] ?? previewByAudience.Other;
   const diagnosis = diagnosisByAudience[selectedAudience] ?? diagnosisByAudience.Other;
 
+  function updateSelectedFiles(files: FileList | null) {
+    setSelectedFiles(files ? Array.from(files).map((file) => `${file.name} (${Math.ceil(file.size / 1024)} KB)`) : []);
+  }
+
   return (
-    <div className="mt-6 grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)_360px]">
+    <div className="mt-6 grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
       <aside className="space-y-4">
         <section className="rounded-lg border border-line bg-white p-5 shadow-panel">
           <div className="flex items-center gap-3">
@@ -272,16 +281,58 @@ export function ContractWorkspace({ selectedAudience = outputAudiences[0] }: { s
         <div className="grid gap-5 p-5">
           <label className="grid gap-2">
             <span className="label">Upload contract file</span>
-            <div className="flex min-h-28 items-center justify-center rounded-md border border-dashed border-line bg-mist p-4 text-center text-sm font-bold text-steel">
-              <UploadCloud className="mr-2 h-5 w-5" />
-              Select multiple PDF, DOCX or TXT files
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => fileInputRef.current?.click()}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") fileInputRef.current?.click();
+              }}
+              onDragOver={(event) => event.preventDefault()}
+              onDrop={(event) => {
+                event.preventDefault();
+                const files = event.dataTransfer.files;
+                if (files.length && fileInputRef.current) {
+                  fileInputRef.current.files = files;
+                  updateSelectedFiles(files);
+                  return;
+                }
+
+                const droppedText = event.dataTransfer.getData("text");
+                if (droppedText && contractTextRef.current) {
+                  contractTextRef.current.value = `${contractTextRef.current.value}\n${droppedText}`.trim();
+                }
+              }}
+              className="flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-md border border-dashed border-line bg-mist p-4 text-center text-sm font-bold text-steel transition hover:border-blue hover:bg-blue-50"
+            >
+              <UploadCloud className="mb-2 h-6 w-6" />
+              <span>Select or drag multiple PDF, DOCX or TXT files here</span>
+              <span className="mt-1 text-xs font-bold text-steel">You can also drag plain contract text into this box.</span>
             </div>
-            <input name="contractFiles" className="sr-only" type="file" multiple accept=".pdf,.doc,.docx,.txt" />
+            <input
+              ref={fileInputRef}
+              name="contractFiles"
+              className="sr-only"
+              type="file"
+              multiple
+              accept=".pdf,.doc,.docx,.txt"
+              onChange={(event) => updateSelectedFiles(event.currentTarget.files)}
+            />
+            {selectedFiles.length > 0 ? (
+              <div className="rounded-md border border-line bg-white p-3">
+                <div className="text-xs font-black uppercase text-steel">Selected files</div>
+                <ul className="mt-2 space-y-1 text-sm font-bold text-graphite">
+                  {selectedFiles.map((file) => (
+                    <li key={file}>{file}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
           </label>
 
           <label className="grid gap-2">
             <span className="label">Paste contract text</span>
-            <textarea name="contractText" className="field min-h-40 resize-y" placeholder="Paste clauses or the full contract text here." />
+            <textarea ref={contractTextRef} name="contractText" className="field min-h-40 resize-y" placeholder="Paste clauses or the full contract text here." />
           </label>
 
           <div className="grid gap-4 md:grid-cols-2">
@@ -369,14 +420,12 @@ export function ContractWorkspace({ selectedAudience = outputAudiences[0] }: { s
             <button type="button" className="h-11 rounded-md border border-line bg-white px-5 text-sm font-black text-navy">
               Save Draft
             </button>
-            <button type="submit" className="inline-flex h-11 items-center gap-2 rounded-md bg-blue px-5 text-sm font-black text-white">
-              <Wand2 className="h-4 w-4" />
-              Review Contract
-            </button>
+            <FormSubmitButton idleLabel="Review Contract" pendingLabel="Contract Intelligence Employee is working..." />
           </div>
         </div>
       </form>
 
+      {false && (
       <aside className="space-y-4">
         <section className="min-h-[320px] rounded-lg border border-line bg-white p-5 shadow-sm">
           <h3 className="text-sm font-black text-navy">Contract Diagnosis</h3>
@@ -443,6 +492,7 @@ export function ContractWorkspace({ selectedAudience = outputAudiences[0] }: { s
           </div>
         </section>
       </aside>
+      )}
     </div>
   );
 }

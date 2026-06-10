@@ -1,7 +1,6 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { Copy, Download } from "lucide-react";
 import { Header } from "@/components/Header";
+import { TaskResultActions } from "@/components/TaskResultActions";
 import { employees } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 import type { GeneratedTaskOutput } from "@/lib/task-output";
@@ -69,16 +68,6 @@ export default async function TaskResultPage({ params }: { params: Promise<{ id:
                 {task.status} - {new Date(task.created_at).toLocaleString("en-GB")}
               </p>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <button className="inline-flex h-10 items-center gap-2 rounded-md border border-line bg-white px-3 text-sm font-black text-navy">
-                <Copy className="h-4 w-4" />
-                Copy {output?.copySectionLabel ?? "Output"}
-              </button>
-              <Link href={`/api/tasks/${task.id}/word`} className="inline-flex h-10 items-center gap-2 rounded-md border border-line bg-white px-3 text-sm font-black text-navy">
-                <Download className="h-4 w-4" />
-                {output?.downloadLabel ?? "Download Word Report"}
-              </Link>
-            </div>
           </div>
           <div className="mt-6 rounded-md bg-mist p-4">
             <div className="text-sm font-black text-navy">Input Summary</div>
@@ -95,9 +84,7 @@ export default async function TaskResultPage({ params }: { params: Promise<{ id:
           ))}
         </div>
 
-        <Link href="/dashboard" className="mt-6 inline-flex rounded-md bg-navy px-5 py-3 text-sm font-black text-white">
-          Return to Dashboard
-        </Link>
+        <TaskResultActions taskId={task.id} output={output} />
       </section>
     </main>
   );

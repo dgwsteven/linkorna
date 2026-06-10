@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { submitEmployeeTask } from "@/app/employees/actions";
+import { FormSubmitButton } from "@/components/FormSubmitButton";
 
 const marketplaces = ["Amazon Germany", "Amazon EU", "eBay Germany", "Otto Market", "Kaufland.de", "Shopify", "Etsy", "TikTok Shop", "Temu", "Other"];
 const analysisGoals = ["Improve my listing", "Find pricing gap", "Extract keywords", "Analyze review pain points", "Compare positioning", "Prepare launch strategy", "Other"];
@@ -210,7 +211,7 @@ export function CompetitorWorkspace({ selectedGoal = "Improve my listing" }: { s
   const outputSections = outputByGoal[goal];
 
   return (
-    <div className="mt-6 grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)_360px]">
+    <div className="mt-6 grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
       <aside className="space-y-4">
         <section className="rounded-lg border border-line bg-white p-5 shadow-panel">
           <div className="flex items-center gap-3">
@@ -330,13 +331,11 @@ export function CompetitorWorkspace({ selectedGoal = "Improve my listing" }: { s
         </div>
 
         <div className="flex justify-end border-t border-line p-5">
-          <button type="submit" className="inline-flex h-11 items-center gap-2 rounded-md bg-blue px-5 text-sm font-black text-white">
-            <Wand2 className="h-4 w-4" />
-            Analyze Competitor
-          </button>
+          <FormSubmitButton idleLabel="Analyze Competitor" pendingLabel="Competitor Intelligence Employee is working..." />
         </div>
       </form>
 
+      {false && (
       <aside className="space-y-4">
         <section className="min-h-[320px] rounded-lg border border-line bg-white p-5 shadow-sm">
           <h3 className="text-sm font-black text-navy">Competitor Diagnosis</h3>
@@ -386,6 +385,7 @@ export function CompetitorWorkspace({ selectedGoal = "Improve my listing" }: { s
           </div>
         </section>
       </aside>
+      )}
     </div>
   );
 }

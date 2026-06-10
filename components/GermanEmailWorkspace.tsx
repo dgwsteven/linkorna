@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { submitEmployeeTask } from "@/app/employees/actions";
+import { FormSubmitButton } from "@/components/FormSubmitButton";
 
 const quickSignals = [
   { label: "Client intent", value: "The client is checking delivery certainty before moving the order forward." },
@@ -60,7 +61,7 @@ function ToneBadge({ tone, children }: { tone: string; children: ReactNode }) {
 
 export function GermanEmailWorkspace() {
   return (
-    <div className="mt-6 grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)_360px]">
+    <div className="mt-6 grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
       <aside className="space-y-4">
         <section className="rounded-lg border border-line bg-white p-5 shadow-panel">
           <div className="flex items-center gap-3">
@@ -269,14 +270,12 @@ export function GermanEmailWorkspace() {
             <button type="button" className="h-11 rounded-md border border-line bg-white px-5 text-sm font-black text-navy">
               Save Draft
             </button>
-            <button type="submit" className="inline-flex h-11 items-center gap-2 rounded-md bg-blue px-5 text-sm font-black text-white">
-              <Wand2 className="h-4 w-4" />
-              Generate Reply
-            </button>
+            <FormSubmitButton idleLabel="Generate Reply" pendingLabel="German Email Employee is working..." />
           </div>
         </div>
       </form>
 
+      {false && (
       <aside className="space-y-4">
         <section className="rounded-lg border border-line bg-white p-5 shadow-sm">
           <h3 className="text-sm font-black text-navy">Email Diagnosis</h3>
@@ -332,6 +331,7 @@ export function GermanEmailWorkspace() {
           </div>
         </section>
       </aside>
+      )}
     </div>
   );
 }
