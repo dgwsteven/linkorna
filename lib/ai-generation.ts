@@ -3,12 +3,30 @@ import { openai } from "@ai-sdk/openai";
 import { employees } from "@/lib/data";
 import { buildTaskOutput, type GeneratedTaskOutput } from "@/lib/task-output";
 
-function getModel() {
-  if (process.env.OPENAI_API_KEY) {
-    return openai(process.env.LINKORNA_OPENAI_MODEL || "gpt-5-mini");
+const strongEmployees = new Set(["contract", "competitor", "meeting"]);
+
+function modelNameForEmployee(employeeId: string) {
+  if (strongEmployees.has(employeeId)) {
+    return process.env.LINKORNA_STRONG_MODEL || process.env.LINKORNA_OPENAI_MODEL || "gpt-5.4";
   }
 
-  return process.env.LINKORNA_AI_MODEL || "openai/gpt-5.4";
+  return process.env.LINKORNA_FAST_MODEL || process.env.LINKORNA_OPENAI_MODEL || "gpt-5-mini";
+}
+
+function gatewayModelNameForEmployee(employeeId: string) {
+  if (strongEmployees.has(employeeId)) {
+    return process.env.LINKORNA_GATEWAY_STRONG_MODEL || process.env.LINKORNA_AI_MODEL || "openai/gpt-5.4";
+  }
+
+  return process.env.LINKORNA_GATEWAY_FAST_MODEL || "openai/gpt-5-mini";
+}
+
+function getModel(employeeId: string) {
+  if (process.env.OPENAI_API_KEY) {
+    return openai(modelNameForEmployee(employeeId));
+  }
+
+  return gatewayModelNameForEmployee(employeeId);
 }
 
 function safeInputForPrompt(input: Record<string, unknown>) {
@@ -77,7 +95,7 @@ export async function generateTaskOutput(employeeId: string, input: Record<strin
 
   try {
     const { text } = await generateText({
-      model: getModel(),
+      model: getModel(employeeId),
       system: employeeBrief(employeeId),
       prompt: `Create the task output from this submitted form data:\n${safeInputForPrompt(input)}\n\nReturn JSON with exactly this shape:\n{\n  "title": "short task title",\n  "summary": "one concise summary sentence",\n  "copySectionLabel": "which section should be copied by the primary copy button",\n  "downloadLabel": "Download Word Report or Download Word Version",\n  "sections": [\n    { "label": "section title", "body": "full useful section content" }\n  ]\n}\n\nQuality rules:\n- Respect selected language/audience/positioning/detail level.\n- Write enough detail to be genuinely useful for a paying business user.\n- Keep diagnosis-style sections concise when appropriate.\n- Do not mention that you are an AI model.\n- Do not include markdown code fences.`,
       maxOutputTokens: 2500

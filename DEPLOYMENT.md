@@ -50,11 +50,18 @@ Required for real AI generation:
 
 ```txt
 OPENAI_API_KEY=
-LINKORNA_OPENAI_MODEL=gpt-5-mini
-LINKORNA_AI_MODEL=openai/gpt-5.4
+LINKORNA_FAST_MODEL=gpt-5-mini
+LINKORNA_STRONG_MODEL=gpt-5.4
+LINKORNA_GATEWAY_FAST_MODEL=openai/gpt-5-mini
+LINKORNA_GATEWAY_STRONG_MODEL=openai/gpt-5.4
 ```
 
-`OPENAI_API_KEY` enables direct OpenAI generation. If Vercel AI Gateway is enabled for the project, `LINKORNA_AI_MODEL` can be used without a direct provider key. If no AI credential is available, LINKORNA falls back to structured rule-based demo output so the product flow still works.
+`OPENAI_API_KEY` enables direct OpenAI generation. It is not tied to one model; the app selects the model per AI employee:
+
+- Fast model: German Email, Supplier Communication, E-commerce Listing
+- Strong model: Contract Intelligence, Competitor Intelligence, Meeting Recorder
+
+If Vercel AI Gateway is enabled for the project, the `LINKORNA_GATEWAY_*` variables can be used without a direct provider key. If no AI credential is available, LINKORNA falls back to structured rule-based demo output so the product flow still works.
 
 Optional for later payments:
 
