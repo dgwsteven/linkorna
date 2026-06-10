@@ -5,20 +5,36 @@ import { buildTaskOutput, type GeneratedTaskOutput } from "@/lib/task-output";
 
 const strongEmployees = new Set(["contract", "competitor", "meeting"]);
 
+function normalizeOpenAIModelName(raw: string | undefined, fallback: string) {
+  const value = (raw || fallback).trim();
+  const compact = value.toLowerCase().replace(/\s+/g, "-");
+
+  if (compact === "5.4" || compact === "gpt-5.4") return "gpt-5.4";
+  if (compact === "5.4-mini" || compact === "gpt-5.4-mini") return "gpt-5.4-mini";
+  if (compact === "5-mini" || compact === "gpt-5-mini") return "gpt-5-mini";
+  if (compact.startsWith("gpt-")) return compact;
+  return value;
+}
+
+function normalizeGatewayModelName(raw: string | undefined, fallback: string) {
+  const model = normalizeOpenAIModelName(raw?.replace(/^openai\//, ""), fallback.replace(/^openai\//, ""));
+  return model.startsWith("openai/") ? model : `openai/${model}`;
+}
+
 function modelNameForEmployee(employeeId: string) {
   if (strongEmployees.has(employeeId)) {
-    return process.env.LINKORNA_STRONG_MODEL || process.env.LINKORNA_OPENAI_MODEL || "gpt-5.4";
+    return normalizeOpenAIModelName(process.env.LINKORNA_STRONG_MODEL || process.env.LINKORNA_OPENAI_MODEL, "gpt-5.4");
   }
 
-  return process.env.LINKORNA_FAST_MODEL || process.env.LINKORNA_OPENAI_MODEL || "gpt-5-mini";
+  return normalizeOpenAIModelName(process.env.LINKORNA_FAST_MODEL || process.env.LINKORNA_OPENAI_MODEL, "gpt-5-mini");
 }
 
 function gatewayModelNameForEmployee(employeeId: string) {
   if (strongEmployees.has(employeeId)) {
-    return process.env.LINKORNA_GATEWAY_STRONG_MODEL || process.env.LINKORNA_AI_MODEL || "openai/gpt-5.4";
+    return normalizeGatewayModelName(process.env.LINKORNA_GATEWAY_STRONG_MODEL || process.env.LINKORNA_AI_MODEL, "openai/gpt-5.4");
   }
 
-  return process.env.LINKORNA_GATEWAY_FAST_MODEL || "openai/gpt-5-mini";
+  return normalizeGatewayModelName(process.env.LINKORNA_GATEWAY_FAST_MODEL, "openai/gpt-5-mini");
 }
 
 function getModel(employeeId: string) {
@@ -90,6 +106,22 @@ function normalizeOutput(employeeId: string, output: GeneratedTaskOutput | null,
   };
 }
 
+function failedContractOutput(fallback: GeneratedTaskOutput, error: unknown): GeneratedTaskOutput {
+  console.error("Contract AI generation failed without fallback", error);
+  return {
+    ...fallback,
+    summary: "Contract analysis did not complete. Please check the uploaded file text or model configuration and try again.",
+    copySectionLabel: "Contract processing issue",
+    sections: [
+      {
+        label: "Contract processing issue",
+        body:
+          "The contract employee could not produce a real contract analysis for this submission. Please paste the contract text directly, or upload a text-readable DOCX/TXT file and try again. If this repeats, check the strong model environment variable in Vercel."
+      }
+    ]
+  };
+}
+
 export async function generateTaskOutput(employeeId: string, input: Record<string, unknown>): Promise<GeneratedTaskOutput> {
   const fallback = buildTaskOutput(employeeId, input);
 
@@ -101,9 +133,16 @@ export async function generateTaskOutput(employeeId: string, input: Record<strin
       maxOutputTokens: 2500
     });
 
-    return normalizeOutput(employeeId, parseJsonOutput(text), fallback);
+    const parsedOutput = parseJsonOutput(text);
+    if (employeeId === "contract" && (!parsedOutput || !Array.isArray(parsedOutput.sections) || parsedOutput.sections.length === 0)) {
+      return failedContractOutput(fallback, "The model did not return valid JSON output.");
+    }
+    return normalizeOutput(employeeId, parsedOutput, fallback);
   } catch (error) {
     console.error("AI generation failed, using fallback output", error);
+    if (employeeId === "contract") {
+      return failedContractOutput(fallback, error);
+    }
     return fallback;
   }
 }

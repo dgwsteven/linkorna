@@ -84,7 +84,7 @@ export default async function TaskResultPage({ params }: { params: Promise<{ id:
           ))}
         </div>
 
-        <TaskResultActions taskId={task.id} output={output} />
+        <TaskResultActions taskId={task.id} employeeId={task.employee_id} output={output} />
       </section>
     </main>
   );

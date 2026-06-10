@@ -23,6 +23,10 @@ function employeeName(employeeId: string) {
   return employees.find((employee) => employee.id === employeeId)?.name ?? employeeId;
 }
 
+function hasFullEmployeeAccess(email?: string | null) {
+  return email?.toLowerCase() === "s.dai@choicell.de";
+}
+
 export default async function DashboardPage() {
   const supabase = await createClient();
   const {
@@ -52,10 +56,11 @@ export default async function DashboardPage() {
   ]);
 
   const tasks = recentTasks ?? [];
-  const plan = workspace?.plan ?? "Starter";
+  const fullAccess = hasFullEmployeeAccess(user.email);
+  const plan = fullAccess ? "Executive" : workspace?.plan ?? "Starter";
   const monthlyLimit = workspace?.monthly_task_limit ?? 80;
   const completedCount = tasks.filter((task) => task.status === "completed").length;
-  const unlockedEmployees = employees.filter((employee) => employee.plan === "Starter").length;
+  const unlockedEmployees = fullAccess ? employees.length : employees.filter((employee) => employee.plan === "Starter").length;
 
   return (
     <main className="grid bg-mist lg:grid-cols-[260px_1fr]">
@@ -81,7 +86,7 @@ export default async function DashboardPage() {
           <div className="rounded-lg border border-line border-t-4 border-t-blue bg-white p-5 shadow-sm">
             <div className="text-xs font-black uppercase text-steel">Active employees</div>
             <div className="mt-2 text-3xl font-black text-navy">{unlockedEmployees}</div>
-            <p className="mt-1 text-sm text-steel">Starter workforce enabled</p>
+            <p className="mt-1 text-sm text-steel">{fullAccess ? "Full test access enabled" : "Starter workforce enabled"}</p>
           </div>
           <div className="rounded-lg border border-line border-t-4 border-t-accent bg-white p-5 shadow-sm">
             <div className="text-xs font-black uppercase text-steel">Completed outputs</div>
@@ -141,7 +146,7 @@ export default async function DashboardPage() {
               </div>
               <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                 {employees.filter((employee) => employee.plan === employeePlan).map((employee) => (
-                  <EmployeeCard key={employee.id} employee={employee} locked={employeePlan !== "Starter"} />
+                  <EmployeeCard key={employee.id} employee={employee} locked={employeePlan !== "Starter" && !fullAccess} />
                 ))}
               </div>
             </div>
