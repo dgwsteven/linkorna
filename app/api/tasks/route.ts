@@ -10,12 +10,26 @@ export async function POST(request: Request) {
   const employee = employees.find((item) => item.id === employeeId) ?? employees[0];
 
   const supabase = await createClient();
+  const cookieHeader = request.headers.get("cookie") || "";
+  const cookieNames = cookieHeader
+    .split(";")
+    .map((item) => item.trim().split("=")[0])
+    .filter(Boolean);
   const {
     data: { user }
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.json({ error: "Authentication required", phase: "auth" }, { status: 401 });
+    return NextResponse.json(
+      {
+        error: "Authentication required",
+        phase: "auth",
+        host: request.headers.get("host"),
+        hasCookieHeader: Boolean(cookieHeader),
+        cookieNames
+      },
+      { status: 401 }
+    );
   }
 
   const { data: profile } = await supabase.from("profiles").select("workspace_id").eq("id", user.id).single();
