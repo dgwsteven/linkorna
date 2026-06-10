@@ -5,20 +5,9 @@ import { generateTaskOutput } from "@/lib/ai-generation";
 import { formDataToInput } from "@/lib/task-input";
 
 export async function POST(request: Request) {
-  const contentType = request.headers.get("content-type") || "";
   const url = new URL(request.url);
-  const isMultipart = contentType.includes("multipart/form-data");
-  const body = isMultipart ? null : await request.json().catch(() => ({}));
-  const formData = isMultipart ? await request.formData() : null;
-  const formInput = formData ? await formDataToInput(formData) : null;
-  const employeeId =
-    url.searchParams.get("employeeId") ||
-    (typeof body?.employeeId === "string" ? body.employeeId : null) ||
-    (typeof formInput?.employeeId === "string" ? formInput.employeeId : null) ||
-    "german-email";
+  const employeeId = url.searchParams.get("employeeId") || "german-email";
   const employee = employees.find((item) => item.id === employeeId) ?? employees[0];
-  const input = formInput || (typeof body.input === "object" && body.input !== null ? body.input : body);
-  const output = await generateTaskOutput(employee.id, input);
 
   const supabase = await createClient();
   const {
@@ -26,14 +15,22 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    return NextResponse.json({ error: "Authentication required", phase: "auth" }, { status: 401 });
   }
 
   const { data: profile } = await supabase.from("profiles").select("workspace_id").eq("id", user.id).single();
 
   if (!profile?.workspace_id) {
-    return NextResponse.json({ error: "Workspace profile not found" }, { status: 400 });
+    return NextResponse.json({ error: "Workspace profile not found", phase: "profile" }, { status: 400 });
   }
+
+  const contentType = request.headers.get("content-type") || "";
+  const isMultipart = contentType.includes("multipart/form-data");
+  const body = isMultipart ? null : await request.json().catch(() => ({}));
+  const formData = isMultipart ? await request.formData() : null;
+  const formInput = formData ? await formDataToInput(formData) : null;
+  const input = formInput || (typeof body.input === "object" && body.input !== null ? body.input : body);
+  const output = await generateTaskOutput(employee.id, input);
 
   const { data: task, error } = await supabase
     .from("tasks")

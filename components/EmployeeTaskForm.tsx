@@ -4,9 +4,14 @@ import { createContext, type FormEvent, type ReactNode, useContext, useState } f
 import { useRouter } from "next/navigation";
 
 const FormSubmittingContext = createContext(false);
+const FormPhaseContext = createContext<"idle" | "checking" | "working">("idle");
 
 export function useEmployeeTaskSubmitting() {
   return useContext(FormSubmittingContext);
+}
+
+export function useEmployeeTaskPhase() {
+  return useContext(FormPhaseContext);
 }
 
 export function EmployeeTaskForm({
@@ -22,15 +27,31 @@ export function EmployeeTaskForm({
 }) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
+  const [phase, setPhase] = useState<"idle" | "checking" | "working">("idle");
 
   async function submitTask(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
-    const formData = new FormData(form);
-    formData.set("employeeId", employeeId);
 
     setSubmitting(true);
+    setPhase("checking");
     try {
+      const authResponse = await fetch("/api/auth/status", {
+        method: "GET",
+        credentials: "same-origin",
+        cache: "no-store"
+      });
+      const authStatus = await authResponse.json().catch(() => null);
+
+      if (!authStatus?.authenticated) {
+        router.push(`/login?message=${encodeURIComponent("Please login before generating a task.")}&next=/employees/${employeeId}`);
+        return;
+      }
+
+      setPhase("working");
+      const formData = new FormData(form);
+      formData.set("employeeId", employeeId);
+
       const response = await fetch(`/api/tasks?employeeId=${encodeURIComponent(employeeId)}`, {
         method: "POST",
         body: formData,
@@ -54,14 +75,17 @@ export function EmployeeTaskForm({
       router.push(`/employees/${employeeId}?message=${encodeURIComponent(message)}`);
     } finally {
       setSubmitting(false);
+      setPhase("idle");
     }
   }
 
   return (
     <FormSubmittingContext.Provider value={submitting}>
-      <form id={id} onSubmit={submitTask} className={className}>
-        {children}
-      </form>
+      <FormPhaseContext.Provider value={phase}>
+        <form id={id} onSubmit={submitTask} className={className}>
+          {children}
+        </form>
+      </FormPhaseContext.Provider>
     </FormSubmittingContext.Provider>
   );
 }
