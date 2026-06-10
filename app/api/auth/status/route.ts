@@ -1,20 +1,18 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createRequestClient } from "@/lib/supabase/request";
 
-export async function GET() {
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
+export async function GET(request: Request) {
+  const { supabase, user, source } = await createRequestClient(request);
 
   if (!user) {
-    return NextResponse.json({ authenticated: false });
+    return NextResponse.json({ authenticated: false, source });
   }
 
   const { data: profile } = await supabase.from("profiles").select("company_name, full_name").eq("id", user.id).single();
 
   return NextResponse.json({
     authenticated: true,
+    source,
     email: user.email,
     companyName: profile?.company_name || null,
     fullName: profile?.full_name || null

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { employees } from "@/lib/data";
-import { createClient } from "@/lib/supabase/server";
+import { createRequestClient } from "@/lib/supabase/request";
 import { generateTaskOutput } from "@/lib/ai-generation";
 import { formDataToInput } from "@/lib/task-input";
 
@@ -9,23 +9,23 @@ export async function POST(request: Request) {
   const employeeId = url.searchParams.get("employeeId") || "german-email";
   const employee = employees.find((item) => item.id === employeeId) ?? employees[0];
 
-  const supabase = await createClient();
+  const { supabase, user, source } = await createRequestClient(request);
   const cookieHeader = request.headers.get("cookie") || "";
+  const authorizationHeader = request.headers.get("authorization") || "";
   const cookieNames = cookieHeader
     .split(";")
     .map((item) => item.trim().split("=")[0])
     .filter(Boolean);
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
 
   if (!user) {
     return NextResponse.json(
       {
         error: "Authentication required",
         phase: "auth",
+        authSource: source,
         host: request.headers.get("host"),
         hasCookieHeader: Boolean(cookieHeader),
+        hasAuthorizationHeader: Boolean(authorizationHeader),
         cookieNames
       },
       { status: 401 }

@@ -2,6 +2,7 @@
 
 import { createContext, type FormEvent, type ReactNode, useContext, useState } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 const FormSubmittingContext = createContext(false);
 const FormPhaseContext = createContext<"idle" | "checking" | "working">("idle");
@@ -46,10 +47,26 @@ export function EmployeeTaskForm({
         return;
       }
 
+      const supabase = createClient();
+      const {
+        data: { session }
+      } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+
+      if (!accessToken) {
+        setError(`Browser login session is missing on ${currentOrigin}. Please log out and log in again on linkorna.com.`);
+        return;
+      }
+
+      const authHeaders = {
+        Authorization: `Bearer ${accessToken}`
+      };
+
       const authResponse = await fetch("/api/auth/status", {
         method: "GET",
         credentials: "same-origin",
-        cache: "no-store"
+        cache: "no-store",
+        headers: authHeaders
       });
       const authStatus = await authResponse.json().catch(() => null);
 
@@ -65,7 +82,8 @@ export function EmployeeTaskForm({
       const response = await fetch(`/api/tasks?employeeId=${encodeURIComponent(employeeId)}`, {
         method: "POST",
         body: formData,
-        credentials: "same-origin"
+        credentials: "same-origin",
+        headers: authHeaders
       });
 
       const payload = await response.json().catch(() => null);
