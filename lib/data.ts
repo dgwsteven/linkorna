@@ -139,18 +139,19 @@ export const recentTasks = [
 
 export const employeeForms: Record<string, { about: string; fields: string[]; mock: string[] }> = {
   "german-email": {
-    about: "Turns German client emails into professional replies, business intent analysis and recommended next actions.",
-    fields: ["Paste German client email", "Company background", "Reply goal", "Tone", "Output language"],
+    about: "Turns German client emails into formal replies, intent analysis, risk flags, opportunity prompts and follow-up actions.",
+    fields: ["Paste German client email", "Business context", "Reply objective", "Tone", "Output package"],
     mock: [
-      "German Reply: Sehr geehrter Herr Müller, vielen Dank für Ihre Nachricht. Wir bestätigen, dass die Lieferung weiterhin für Mitte Juli geplant ist...",
-      "Chinese Explanation: 客户主要关心交货时间和付款条款，并希望尽快获得确认。",
-      "Intent Analysis: The client is not rejecting the offer. He is asking for clarification before proceeding.",
-      "Recommended Next Step: Send a short reply confirming delivery timeline and attach the updated offer."
+      "German Reply: Sehr geehrter Herr Schneider, vielen Dank fuer Ihre Nachricht. Wir bestaetigen, dass die Lieferung fuer Mitte Juli vorbereitet wird...",
+      "Chinese Explanation: 客户主要在确认交期和付款安排。建议先确认时间线，再提醒客户提供订单号和预付款信息。",
+      "Intent Analysis: The client is interested and asking for operational certainty before moving forward.",
+      "Risk Flag: Payment timing and delivery contact are still unclear.",
+      "Recommended Next Step: Attach the updated offer and ask for purchase order number, billing address and deposit schedule."
     ]
   },
   contract: {
-    about: "Reviews contract text and uploaded files for business-critical clauses, negotiation risk and missing information.",
-    fields: ["Upload PDF / DOCX / TXT", "Paste contract text", "Focus areas"],
+    about: "Reviews contracts for business risk, key clauses, missing terms and audience-aware negotiation wording.",
+    fields: ["Upload PDF / DOCX / TXT", "Paste contract text", "Review objective", "Output audience", "Focus areas"],
     mock: [
       "Executive Summary in Chinese: 本合同整体可执行，但付款节点、延期责任和验收标准需要进一步明确。",
       "Key Clauses: Payment within 30 days after invoice; delivery under DAP Hamburg; warranty period 12 months.",
@@ -160,8 +161,8 @@ export const employeeForms: Record<string, { about: string; fields: string[]; mo
     ]
   },
   supplier: {
-    about: "Creates supplier inquiries, negotiation messages, follow-ups and quotation comparison structures.",
-    fields: ["Describe sourcing task", "Target language", "Product category", "Quantity", "Delivery location", "Communication goal"],
+    about: "Creates supplier inquiries, negotiation messages, follow-ups and quotation comparison structures for sourcing teams.",
+    fields: ["Describe sourcing task", "Communication goal", "Target language", "Product category", "Quantity", "Delivery location"],
     mock: [
       "Supplier Inquiry Email: Dear Supplier, we are sourcing CE-compliant products for delivery to Hamburg...",
       "Negotiation Message: Please confirm whether the unit price can be adjusted for 2,000 pieces with consolidated shipping.",
@@ -170,8 +171,8 @@ export const employeeForms: Record<string, { about: string; fields: string[]; mo
     ]
   },
   listing: {
-    about: "Builds marketplace-ready listing assets for Amazon, Shopify, eBay, TikTok Shop, Temu and other channels.",
-    fields: ["Product name", "Product category", "Target marketplace", "Target country", "Product features", "Keywords", "Upload product image"],
+    about: "Builds marketplace-ready titles, bullets, descriptions, keywords and localization notes for e-commerce channels.",
+    fields: ["Product name", "Target marketplace", "Target country", "Product category", "Product features", "Keywords", "Upload product image"],
     mock: [
       "SEO Title: Foldable Aluminum Laptop Stand for Desk, Adjustable Ergonomic Riser, Silver",
       "Bullet Points: Stable aluminum frame; six height levels; compact foldable design; improves airflow; travel-ready.",
@@ -181,8 +182,8 @@ export const employeeForms: Record<string, { about: string; fields: string[]; mo
     ]
   },
   competitor: {
-    about: "Analyzes competitor links, ASINs, pricing, reviews and positioning to produce improvement recommendations.",
-    fields: ["Competitor product link", "ASIN optional", "Product category", "Target marketplace", "Your product description", "Main goal"],
+    about: "Analyzes competitor listings, pricing, keywords and review pain points, then turns them into listing improvement actions.",
+    fields: ["Competitor product link", "Analysis goal", "Marketplace", "Your product description", "Known competitor keywords", "Known review issues"],
     mock: [
       "Competitor Summary: Main competitors emphasize durability and fast delivery, while fewer highlight after-sales support.",
       "Price Positioning: Your product can sit 6-8% above entry-level competitors if warranty and packaging are clearer.",
@@ -192,8 +193,8 @@ export const employeeForms: Record<string, { about: string; fields: string[]; mo
     ]
   },
   meeting: {
-    about: "Analyzes uploaded meeting recordings after the meeting and produces minutes, transcript samples and follow-up drafts.",
-    fields: ["Upload MP4 / MP3 / WAV", "Meeting language", "Output language", "Meeting type", "Optional meeting context"],
+    about: "Analyzes meeting recordings and transcripts, then produces audience-aware minutes, action items and follow-up emails.",
+    fields: ["Upload meeting files", "Output audience", "Meeting type", "Meeting language", "Meeting context"],
     mock: [
       "Meeting Summary: This meeting focused on delivery timeline, pricing adjustment and next project steps.",
       "Key Decisions: Delivery target remains mid-July; supplier will send updated quotation; client requires revised technical documents.",

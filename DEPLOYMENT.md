@@ -94,7 +94,7 @@ Included now:
 - Dashboard
 - Six AI employee task pages
 - Task result page
-- Supabase-backed login/register foundations
+- Login/register mock pages
 - Admin mock page
 - Supabase schema
 - Environment variable template

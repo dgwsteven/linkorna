@@ -34,7 +34,7 @@ export default function Home() {
           </div>
           <div className="rounded-lg border border-white/15 bg-white p-5 shadow-panel">
             <div className="rounded-lg bg-navy p-5 text-white">
-              <div className="text-sm font-bold text-slate-300">Workforce workflow</div>
+                <div className="text-sm font-bold text-slate-300">Workforce workflow</div>
               <div className="mt-4 grid gap-3">
                 {["Choose an AI Employee", "Submit Task", "Receive Business Output"].map((item, index) => (
                   <div key={item} className="flex items-center gap-3 rounded-md bg-white/10 p-4">
@@ -46,7 +46,7 @@ export default function Home() {
             </div>
             <div className="mt-5 grid gap-3 sm:grid-cols-3">
               {["Contracts", "Listings", "Meetings"].map((item) => (
-                <div key={item} className="rounded-md border border-line bg-white p-4">
+                  <div key={item} className="rounded-md border border-line bg-white p-4">
                   <div className="text-xs font-black uppercase text-steel">{item}</div>
                   <div className="mt-3 h-2 rounded bg-line" />
                   <div className="mt-2 h-2 w-2/3 rounded bg-blue" />

@@ -2,8 +2,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Header } from "@/components/Header";
+import { CompetitorWorkspace } from "@/components/CompetitorWorkspace";
+import { ContractWorkspace } from "@/components/ContractWorkspace";
+import { GermanEmailWorkspace } from "@/components/GermanEmailWorkspace";
+import { ListingWorkspace } from "@/components/ListingWorkspace";
+import { MeetingWorkspace } from "@/components/MeetingWorkspace";
 import { OutputPanel } from "@/components/OutputPanel";
 import { PlanBadge } from "@/components/PlanBadge";
+import { SupplierWorkspace } from "@/components/SupplierWorkspace";
 import { TaskForm } from "@/components/TaskForm";
 import { employeeForms, employees } from "@/lib/data";
 
@@ -11,8 +17,15 @@ export function generateStaticParams() {
   return employees.map((employee) => ({ id: employee.id }));
 }
 
-export default async function EmployeePage({ params }: { params: Promise<{ id: string }> }) {
+export default async function EmployeePage({
+  params,
+  searchParams
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ audience?: string; language?: string; marketplace?: string; positioning?: string; goal?: string; detailLevel?: string }>;
+}) {
   const { id } = await params;
+  const { audience, language, marketplace, positioning, goal, detailLevel } = await searchParams;
   const employee = employees.find((item) => item.id === id);
   const form = employeeForms[id];
 
@@ -48,10 +61,24 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
           </div>
         </div>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-          <TaskForm fields={form.fields} />
-          <OutputPanel items={form.mock} />
-        </div>
+        {id === "german-email" ? (
+          <GermanEmailWorkspace />
+        ) : id === "contract" ? (
+          <ContractWorkspace selectedAudience={audience} />
+        ) : id === "supplier" ? (
+          <SupplierWorkspace selectedLanguage={language} />
+        ) : id === "listing" ? (
+          <ListingWorkspace selectedMarketplace={marketplace} selectedLanguage={language} selectedPositioning={positioning} />
+        ) : id === "competitor" ? (
+          <CompetitorWorkspace selectedGoal={goal} />
+        ) : id === "meeting" ? (
+          <MeetingWorkspace selectedAudience={audience} selectedDetailLevel={detailLevel} />
+        ) : (
+          <div className="mt-6 grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+            <TaskForm fields={form.fields} />
+            <OutputPanel items={form.mock} />
+          </div>
+        )}
       </section>
     </main>
   );

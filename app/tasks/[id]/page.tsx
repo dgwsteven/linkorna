@@ -1,13 +1,59 @@
 import Link from "next/link";
-import { Download, Save, Copy } from "lucide-react";
+import { notFound, redirect } from "next/navigation";
+import { Copy, Download } from "lucide-react";
 import { Header } from "@/components/Header";
-import { OutputPanel } from "@/components/OutputPanel";
-import { employeeForms, employees } from "@/lib/data";
+import { employees } from "@/lib/data";
+import { createClient } from "@/lib/supabase/server";
+import type { GeneratedTaskOutput } from "@/lib/task-output";
+
+type TaskRecord = {
+  id: string;
+  title: string;
+  status: string;
+  employee_id: string;
+  input: Record<string, unknown> | null;
+  output: GeneratedTaskOutput | null;
+  created_at: string;
+};
+
+function formatInputSummary(input: Record<string, unknown> | null) {
+  if (!input) return "No input summary saved.";
+
+  const entries = Object.entries(input)
+    .filter(([, value]) => value !== "" && value !== undefined && value !== null)
+    .slice(0, 6)
+    .map(([key, value]) => {
+      const printable = Array.isArray(value)
+        ? value.join(", ")
+        : typeof value === "object"
+          ? "uploaded file"
+          : String(value);
+      return `${key}: ${printable}`;
+    });
+
+  return entries.length ? entries.join(" | ") : "No input summary saved.";
+}
 
 export default async function TaskResultPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const employee = employees[0];
-  const result = employeeForms["german-email"].mock;
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login?message=Please%20login%20before%20viewing%20task%20results.");
+  }
+
+  const { data: task } = await supabase.from("tasks").select("*").eq("id", id).single<TaskRecord>();
+
+  if (!task) {
+    notFound();
+  }
+
+  const employee = employees.find((item) => item.id === task.employee_id);
+  const output = task.output;
+  const sections = Array.isArray(output?.sections) ? output.sections : [];
 
   return (
     <main>
@@ -17,35 +63,41 @@ export default async function TaskResultPage({ params }: { params: Promise<{ id:
           <div className="flex flex-wrap items-start justify-between gap-5">
             <div>
               <p className="text-sm font-black uppercase text-accent">Task Result</p>
-              <h1 className="mt-2 text-3xl font-black text-navy">Generated output #{id}</h1>
-              <p className="mt-2 text-steel">AI employee used: {employee.name}</p>
+              <h1 className="mt-2 text-3xl font-black text-navy">{task.title || output?.title || "Generated output"}</h1>
+              <p className="mt-2 text-steel">AI employee used: {employee?.name ?? task.employee_id}</p>
+              <p className="mt-1 text-sm font-bold text-steel">
+                {task.status} - {new Date(task.created_at).toLocaleString("en-GB")}
+              </p>
             </div>
             <div className="flex flex-wrap gap-2">
-              {[
-                { Icon: Copy, label: "Copy" },
-                { Icon: Download, label: "Download PDF" },
-                { Icon: Save, label: "Save to history" }
-              ].map(({ Icon, label }) => {
-                return (
-                  <button key={label} className="inline-flex h-10 items-center gap-2 rounded-md border border-line bg-white px-3 text-sm font-black text-navy">
-                    <Icon className="h-4 w-4" />
-                    {label}
-                  </button>
-                );
-              })}
+              <button className="inline-flex h-10 items-center gap-2 rounded-md border border-line bg-white px-3 text-sm font-black text-navy">
+                <Copy className="h-4 w-4" />
+                Copy {output?.copySectionLabel ?? "Output"}
+              </button>
+              <button className="inline-flex h-10 items-center gap-2 rounded-md border border-line bg-white px-3 text-sm font-black text-navy">
+                <Download className="h-4 w-4" />
+                {output?.downloadLabel ?? "Download Word Report"}
+              </button>
             </div>
           </div>
           <div className="mt-6 rounded-md bg-mist p-4">
             <div className="text-sm font-black text-navy">Input Summary</div>
-            <p className="mt-1 text-sm leading-6 text-graphite">
-              German client requested delivery timeline confirmation, updated commercial terms and a concise reply before proceeding.
-            </p>
+            <p className="mt-1 text-sm leading-6 text-graphite">{output?.summary ?? formatInputSummary(task.input)}</p>
           </div>
         </div>
-        <div className="mt-6">
-          <OutputPanel items={result} />
+
+        <div className="mt-6 grid gap-4">
+          {sections.map((section) => (
+            <section key={section.label} className="rounded-lg border border-line bg-white p-5 shadow-sm">
+              <h2 className="text-base font-black text-navy">{section.label}</h2>
+              <p className="mt-3 whitespace-pre-line text-sm leading-7 text-graphite">{section.body}</p>
+            </section>
+          ))}
         </div>
-        <Link href="/dashboard" className="mt-6 inline-flex rounded-md bg-navy px-5 py-3 text-sm font-black text-white">Return to Dashboard</Link>
+
+        <Link href="/dashboard" className="mt-6 inline-flex rounded-md bg-navy px-5 py-3 text-sm font-black text-white">
+          Return to Dashboard
+        </Link>
       </section>
     </main>
   );

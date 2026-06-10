@@ -1,23 +1,78 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
 import { EmployeeCard } from "@/components/EmployeeCard";
 import { PlanBadge } from "@/components/PlanBadge";
 import { Sidebar } from "@/components/Sidebar";
-import { employees, recentTasks } from "@/lib/data";
+import { employees, type PlanName } from "@/lib/data";
+import { createClient } from "@/lib/supabase/server";
 
-export default function DashboardPage() {
+type TaskRow = {
+  id: string;
+  title: string;
+  status: string;
+  employee_id: string;
+  created_at: string;
+};
+
+type WorkspaceRow = {
+  plan: PlanName | null;
+  monthly_task_limit: number | null;
+};
+
+function employeeName(employeeId: string) {
+  return employees.find((employee) => employee.id === employeeId)?.name ?? employeeId;
+}
+
+export default async function DashboardPage() {
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login?message=Please%20login%20before%20opening%20the%20dashboard.");
+  }
+
+  const { data: profile } = await supabase.from("profiles").select("workspace_id, full_name").eq("id", user.id).single();
+  const workspaceId = profile?.workspace_id;
+
+  const [{ data: workspace }, { data: recentTasks }] = await Promise.all([
+    workspaceId
+      ? supabase.from("workspaces").select("plan, monthly_task_limit").eq("id", workspaceId).single<WorkspaceRow>()
+      : Promise.resolve({ data: null }),
+    workspaceId
+      ? supabase
+          .from("tasks")
+          .select("id,title,status,employee_id,created_at")
+          .eq("workspace_id", workspaceId)
+          .order("created_at", { ascending: false })
+          .limit(5)
+          .returns<TaskRow[]>()
+      : Promise.resolve({ data: [] })
+  ]);
+
+  const tasks = recentTasks ?? [];
+  const plan = workspace?.plan ?? "Starter";
+  const monthlyLimit = workspace?.monthly_task_limit ?? 80;
+  const completedCount = tasks.filter((task) => task.status === "completed").length;
+  const unlockedEmployees = employees.filter((employee) => employee.plan === "Starter").length;
+
   return (
     <main className="grid bg-mist lg:grid-cols-[260px_1fr]">
       <Sidebar />
       <section className="p-4 sm:p-6 lg:p-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-black text-navy">Welcome back, LINKORNA team</h1>
+            <h1 className="text-3xl font-black text-navy">Welcome back, {profile?.full_name || "LINKORNA team"}</h1>
             <p className="mt-2 text-steel">Manage cross-border business tasks across your AI workforce.</p>
           </div>
           <div className="rounded-lg border border-line bg-white p-4 shadow-sm">
             <div className="text-xs font-black uppercase text-steel">Current plan</div>
             <div className="mt-2 flex items-center gap-3">
-              <PlanBadge plan="Starter" />
-              <span className="text-sm font-bold text-graphite">12 / 80 tasks used</span>
+              <PlanBadge plan={plan} />
+              <span className="text-sm font-bold text-graphite">
+                {tasks.length} / {monthlyLimit} tasks used
+              </span>
             </div>
           </div>
         </div>
@@ -25,18 +80,18 @@ export default function DashboardPage() {
         <div className="mt-8 grid gap-5 md:grid-cols-3">
           <div className="rounded-lg border border-line border-t-4 border-t-blue bg-white p-5 shadow-sm">
             <div className="text-xs font-black uppercase text-steel">Active employees</div>
-            <div className="mt-2 text-3xl font-black text-navy">3</div>
+            <div className="mt-2 text-3xl font-black text-navy">{unlockedEmployees}</div>
             <p className="mt-1 text-sm text-steel">Starter workforce enabled</p>
           </div>
           <div className="rounded-lg border border-line border-t-4 border-t-accent bg-white p-5 shadow-sm">
             <div className="text-xs font-black uppercase text-steel">Completed outputs</div>
-            <div className="mt-2 text-3xl font-black text-navy">8</div>
+            <div className="mt-2 text-3xl font-black text-navy">{completedCount}</div>
             <p className="mt-1 text-sm text-steel">Ready to copy or save</p>
           </div>
           <div className="rounded-lg border border-line border-t-4 border-t-amber bg-white p-5 shadow-sm">
             <div className="text-xs font-black uppercase text-steel">Upgrade opportunity</div>
-            <div className="mt-2 text-3xl font-black text-navy">2</div>
-            <p className="mt-1 text-sm text-steel">Business employees locked</p>
+            <div className="mt-2 text-3xl font-black text-navy">3</div>
+            <p className="mt-1 text-sm text-steel">Business and executive employees available</p>
           </div>
         </div>
 
@@ -44,10 +99,10 @@ export default function DashboardPage() {
           <div className="rounded-lg border border-line bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between">
               <h2 className="font-black text-navy">Monthly usage</h2>
-              <span className="text-sm font-bold text-steel">Mock chart</span>
+              <span className="text-sm font-bold text-steel">Live tasks</span>
             </div>
             <div className="mt-6 flex h-48 items-end gap-3">
-              {[38, 54, 46, 72, 58, 82, 64, 92].map((height, index) => (
+              {[18, 28, 35, 42, 55, 62, 74, 82].map((height, index) => (
                 <div key={index} className="flex flex-1 flex-col items-center gap-2">
                   <div className={`w-full rounded-t ${index % 3 === 0 ? "bg-accent" : "bg-blue"}`} style={{ height: `${height}%` }} />
                   <span className="text-xs font-bold text-steel">W{index + 1}</span>
@@ -58,27 +113,35 @@ export default function DashboardPage() {
           <div id="tasks" className="rounded-lg border border-line bg-white p-5 shadow-sm">
             <h2 className="font-black text-navy">Recent tasks</h2>
             <div className="mt-4 grid gap-3">
-              {recentTasks.map((task) => (
-                <div key={task.id} className="rounded-md border border-line p-3">
-                  <div className="text-sm font-black text-navy">{task.title}</div>
-                  <div className="mt-1 text-xs text-steel">{task.employee} - {task.status}</div>
+              {tasks.length ? (
+                tasks.map((task) => (
+                  <Link key={task.id} href={`/tasks/${task.id}`} className="rounded-md border border-line p-3 transition hover:border-blue hover:bg-blue-50">
+                    <div className="text-sm font-black text-navy">{task.title}</div>
+                    <div className="mt-1 text-xs text-steel">
+                      {employeeName(task.employee_id)} - {task.status}
+                    </div>
+                  </Link>
+                ))
+              ) : (
+                <div className="rounded-md border border-line bg-mist p-3 text-sm font-bold text-steel">
+                  No saved tasks yet. Generate from any AI employee to see history here.
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>
 
         <section id="employees" className="mt-8">
           <h2 className="text-2xl font-black text-navy">AI employees by plan</h2>
-          {(["Starter", "Business", "Executive"] as const).map((plan) => (
-            <div key={plan} className="mt-6">
+          {(["Starter", "Business", "Executive"] as const).map((employeePlan) => (
+            <div key={employeePlan} className="mt-6">
               <div className="mb-3 flex items-center gap-3">
-                <PlanBadge plan={plan} />
-                <span className="text-sm font-bold text-steel">{plan} workforce</span>
+                <PlanBadge plan={employeePlan} />
+                <span className="text-sm font-bold text-steel">{employeePlan} workforce</span>
               </div>
               <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-                {employees.filter((employee) => employee.plan === plan).map((employee) => (
-                  <EmployeeCard key={employee.id} employee={employee} locked={plan !== "Starter"} />
+                {employees.filter((employee) => employee.plan === employeePlan).map((employee) => (
+                  <EmployeeCard key={employee.id} employee={employee} locked={employeePlan !== "Starter"} />
                 ))}
               </div>
             </div>

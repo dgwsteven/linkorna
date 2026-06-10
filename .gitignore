@@ -9,3 +9,5 @@ out
 *.log
 vercel
 .vercel
+preview.html
+preview-server.js
