@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { generateTaskOutput } from "@/lib/ai-generation";
 import { createClient } from "@/lib/supabase/server";
 
@@ -68,11 +69,16 @@ async function formDataToInput(formData: FormData) {
 
 export async function submitEmployeeTask(employeeId: string, formData: FormData) {
   const supabase = await createClient();
+  const requestHeaders = await headers();
+  const host = requestHeaders.get("host") || "";
   const {
     data: { user }
   } = await supabase.auth.getUser();
 
   if (!user) {
+    if (host.includes("127.0.0.1") || host.includes("localhost")) {
+      redirect(`https://linkorna.com/login?message=${encodeURIComponent("Please login on linkorna.com. Local preview and production do not share login sessions.")}&next=/employees/${employeeId}`);
+    }
     redirect(`/login?message=Please%20login%20before%20generating%20a%20task.&next=/employees/${employeeId}`);
   }
 
