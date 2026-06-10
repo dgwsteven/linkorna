@@ -1,13 +1,7 @@
 import Link from "next/link";
-import { ArrowRight, LogIn, LogOut } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { ArrowRight, LogIn } from "lucide-react";
 
-export async function Header() {
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
-
+export function Header() {
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-white/92 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
@@ -24,23 +18,14 @@ export async function Header() {
           <Link href="/employees/german-email">AI Employees</Link>
         </nav>
         <div className="flex items-center gap-2">
-          {user ? (
-            <Link href="/logout" className="hidden h-10 items-center gap-2 rounded-md px-3 text-sm font-bold text-graphite sm:flex">
-              <LogOut className="h-4 w-4" />
-              Logout
-            </Link>
-          ) : (
-            <>
-              <Link href="/login" className="hidden h-10 items-center gap-2 rounded-md px-3 text-sm font-bold text-graphite sm:flex">
-                <LogIn className="h-4 w-4" />
-                Login
-              </Link>
-              <Link href="/register" className="flex h-10 items-center gap-2 rounded-md bg-blue px-4 text-sm font-bold text-white">
-                Start
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </>
-          )}
+          <Link href="/login" className="hidden h-10 items-center gap-2 rounded-md px-3 text-sm font-bold text-graphite sm:flex">
+            <LogIn className="h-4 w-4" />
+            Login
+          </Link>
+          <Link href="/employees/german-email" className="flex h-10 items-center gap-2 rounded-md bg-blue px-4 text-sm font-bold text-white">
+            Start
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
       </div>
     </header>
