@@ -17,6 +17,9 @@ type WorkspaceRow = {
   paid_until?: string | null;
 };
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function BillingPage() {
   const supabase = await createClient();
   const {

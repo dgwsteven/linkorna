@@ -9,6 +9,9 @@ import { billingPlans, isPlanName } from "@/lib/billing";
 import { type PlanName } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function BillingCheckoutPage({ searchParams }: { searchParams: Promise<{ plan?: string }> }) {
   const { plan: rawPlan } = await searchParams;
   const plan = isPlanName(rawPlan) ? rawPlan : null;
@@ -56,7 +59,7 @@ export default async function BillingCheckoutPage({ searchParams }: { searchPara
                 <PlanBadge plan={plan as PlanName} />
                 <span className="text-sm font-black text-navy">{selectedPlan.name}</span>
               </div>
-              <div className="mt-3 text-3xl font-black text-navy">€{selectedPlan.amount / 100}</div>
+              <div className="mt-3 text-3xl font-black text-navy">EUR {selectedPlan.amount / 100}</div>
               <div className="text-sm font-bold text-steel">per month</div>
             </div>
           </div>
