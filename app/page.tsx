@@ -13,6 +13,27 @@ const pains = [
   { title: "Meetings require translation, summaries and follow-ups", icon: AlertTriangle }
 ];
 
+const impactStats = [
+  {
+    value: "6-10h",
+    label: "saved per week",
+    detail: "on email replies, supplier messages and meeting notes",
+    tone: "border-blue-200 bg-blue-50 text-blue-700"
+  },
+  {
+    value: "30%",
+    label: "less outside spend",
+    detail: "by preparing first-pass contracts, listings and briefs in-house",
+    tone: "border-emerald-200 bg-emerald-50 text-emerald-700"
+  },
+  {
+    value: "+15%",
+    label: "sales lift potential",
+    detail: "from sharper marketplace listings and competitor signals",
+    tone: "border-amber-200 bg-amber-50 text-amber-700"
+  }
+];
+
 export default function Home() {
   return (
     <main>
@@ -45,11 +66,11 @@ export default function Home() {
               </div>
             </div>
             <div className="mt-5 grid gap-3 sm:grid-cols-3">
-              {["Contracts", "Listings", "Meetings"].map((item) => (
-                  <div key={item} className="rounded-md border border-line bg-white p-4">
-                  <div className="text-xs font-black uppercase text-steel">{item}</div>
-                  <div className="mt-3 h-2 rounded bg-line" />
-                  <div className="mt-2 h-2 w-2/3 rounded bg-blue" />
+              {impactStats.map((item) => (
+                <div key={item.label} className={`rounded-md border p-4 ${item.tone}`}>
+                  <div className="text-2xl font-black">{item.value}</div>
+                  <div className="mt-1 text-xs font-black uppercase">{item.label}</div>
+                  <p className="mt-3 text-xs font-bold leading-5 text-graphite">{item.detail}</p>
                 </div>
               ))}
             </div>
