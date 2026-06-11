@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { employees } from "@/lib/data";
+import { buildAccessState, canRunEmployee } from "@/lib/access-control";
 import { createRequestClient } from "@/lib/supabase/request";
 import { generateTaskOutput } from "@/lib/ai-generation";
 import { formDataToInput } from "@/lib/task-input";
@@ -36,6 +37,42 @@ export async function POST(request: Request) {
 
   if (!profile?.workspace_id) {
     return NextResponse.json({ error: "Workspace profile not found", phase: "profile" }, { status: 400 });
+  }
+
+  const monthStart = new Date();
+  monthStart.setUTCDate(1);
+  monthStart.setUTCHours(0, 0, 0, 0);
+
+  const [{ data: workspace }, { count: monthlyUsed }] = await Promise.all([
+    supabase
+      .from("workspaces")
+      .select("plan,monthly_task_limit,created_at")
+      .eq("id", profile.workspace_id)
+      .single(),
+    supabase
+      .from("tasks")
+      .select("id", { count: "exact", head: true })
+      .eq("workspace_id", profile.workspace_id)
+      .gte("created_at", monthStart.toISOString())
+  ]);
+
+  const access = buildAccessState({
+    email: user.email,
+    workspace,
+    monthlyUsed: monthlyUsed ?? 0
+  });
+  const permission = canRunEmployee(access, employee.plan);
+
+  if (!permission.allowed) {
+    return NextResponse.json(
+      {
+        error: permission.reason,
+        phase: "access",
+        upgradeUrl: "/billing",
+        access
+      },
+      { status: 402 }
+    );
   }
 
   const contentType = request.headers.get("content-type") || "";

@@ -21,7 +21,7 @@ export function EmployeeCard({ employee, locked }: { employee: Employee; locked?
         <strong>Example task:</strong> {employee.example}
       </div>
       {locked ? (
-        <Link href="/pricing" className="mt-5 inline-flex h-10 items-center justify-center gap-2 rounded-md border border-line bg-white px-4 text-sm font-extrabold text-navy">
+        <Link href="/billing" className="mt-5 inline-flex h-10 items-center justify-center gap-2 rounded-md border border-line bg-white px-4 text-sm font-extrabold text-navy">
           <LockKeyhole className="h-4 w-4" />
           Upgrade to {employee.plan}
         </Link>

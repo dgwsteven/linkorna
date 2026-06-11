@@ -2,6 +2,7 @@ import {
   BarChart3,
   BriefcaseBusiness,
   ClipboardCheck,
+  CreditCard,
   FileSearch,
   Globe2,
   MailCheck,
@@ -106,6 +107,7 @@ export const navItems = [
   { label: "AI Employees", href: "/dashboard#employees", icon: Globe2 },
   { label: "Recent Tasks", href: "/dashboard#tasks", icon: ClipboardCheck },
   { label: "Documents", href: "/documents", icon: FileSearch },
+  { label: "Billing", href: "/billing", icon: CreditCard },
   { label: "Pricing", href: "/pricing", icon: BarChart3 },
   { label: "Admin", href: "/admin", icon: BriefcaseBusiness }
 ];

@@ -4,6 +4,7 @@ import { LogOut } from "lucide-react";
 import { EmployeeCard } from "@/components/EmployeeCard";
 import { PlanBadge } from "@/components/PlanBadge";
 import { Sidebar } from "@/components/Sidebar";
+import { buildAccessState, canRunEmployee } from "@/lib/access-control";
 import { employees, type PlanName } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 
@@ -24,14 +25,11 @@ type WorkspaceRow = {
   name: string | null;
   plan: PlanName | null;
   monthly_task_limit: number | null;
+  created_at: string | null;
 };
 
 function employeeName(employeeId: string) {
   return employees.find((employee) => employee.id === employeeId)?.name ?? employeeId;
-}
-
-function hasFullEmployeeAccess(email?: string | null) {
-  return email?.toLowerCase() === "s.dai@choicell.de";
 }
 
 function dayKey(date: Date) {
@@ -67,7 +65,7 @@ export default async function DashboardPage() {
 
   const [{ data: workspace }, { data: recentTasks }] = await Promise.all([
     workspaceId
-      ? supabase.from("workspaces").select("name, plan, monthly_task_limit").eq("id", workspaceId).single<WorkspaceRow>()
+      ? supabase.from("workspaces").select("name, plan, monthly_task_limit, created_at").eq("id", workspaceId).single<WorkspaceRow>()
       : Promise.resolve({ data: null }),
     workspaceId
       ? supabase
@@ -113,13 +111,14 @@ export default async function DashboardPage() {
   ]);
 
   const tasks = recentTasks ?? [];
-  const fullAccess = hasFullEmployeeAccess(user.email);
-  const plan = fullAccess ? "Executive" : workspace?.plan ?? "Starter";
+  const access = buildAccessState({ email: user.email, workspace, monthlyUsed: monthlyTaskCount ?? 0 });
+  const fullAccess = access.fullAccess;
+  const plan = access.plan;
   const displayName = profile?.company_name || workspace?.name || profile?.full_name || "LINKORNA";
-  const monthlyLimit = workspace?.monthly_task_limit ?? 80;
+  const monthlyLimit = access.monthlyLimit;
   const completedCount = completedTaskCount ?? 0;
-  const usedThisMonth = monthlyTaskCount ?? 0;
-  const unlockedEmployees = fullAccess ? employees.length : employees.filter((employee) => employee.plan === "Starter").length;
+  const usedThisMonth = access.monthlyUsed;
+  const unlockedEmployees = employees.filter((employee) => canRunEmployee(access, employee.plan).allowed).length;
   const usageDays = Array.from({ length: 30 }, (_, index) => {
     const date = new Date(usageStart);
     date.setUTCDate(usageStart.getUTCDate() + index);
@@ -163,6 +162,11 @@ export default async function DashboardPage() {
                   {usedThisMonth} / {monthlyLimit} tasks used
                 </span>
               </div>
+              {!fullAccess ? (
+                <div className="mt-2 text-xs font-bold text-steel">
+                  {access.trialActive ? `${access.trialDaysRemaining} trial days remaining` : "Trial ended - choose a plan to continue"}
+                </div>
+              ) : null}
             </div>
             <Link href="/logout" className="inline-flex h-11 items-center gap-2 rounded-md border border-line bg-white px-4 text-sm font-black text-navy shadow-sm">
               <LogOut className="h-4 w-4" />
@@ -175,7 +179,7 @@ export default async function DashboardPage() {
           <div className="rounded-lg border border-line border-t-4 border-t-blue bg-white p-5 shadow-sm">
             <div className="text-xs font-black uppercase text-steel">Active employees</div>
             <div className="mt-2 text-3xl font-black text-navy">{unlockedEmployees}</div>
-            <p className="mt-1 text-sm text-steel">{fullAccess ? "Full test access enabled" : "Starter workforce enabled"}</p>
+            <p className="mt-1 text-sm text-steel">{fullAccess ? "Full test access enabled" : access.trialActive ? "Free trial workforce enabled" : "Paid plan access"}</p>
           </div>
           <div className="rounded-lg border border-line border-t-4 border-t-accent bg-white p-5 shadow-sm">
             <div className="text-xs font-black uppercase text-steel">Completed outputs</div>
@@ -277,7 +281,7 @@ export default async function DashboardPage() {
               </div>
               <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                 {employees.filter((employee) => employee.plan === employeePlan).map((employee) => (
-                  <EmployeeCard key={employee.id} employee={employee} locked={employeePlan !== "Starter" && !fullAccess} />
+                  <EmployeeCard key={employee.id} employee={employee} locked={!canRunEmployee(access, employee.plan).allowed} />
                 ))}
               </div>
             </div>
