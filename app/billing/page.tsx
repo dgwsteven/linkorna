@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
 import { CheckoutButton } from "@/components/CheckoutButton";
 import { PlanBadge } from "@/components/PlanBadge";
+import { SessionRepair } from "@/components/SessionRepair";
 import { Sidebar } from "@/components/Sidebar";
 import { buildAccessState } from "@/lib/access-control";
 import { plans, type PlanName } from "@/lib/data";
@@ -23,7 +24,14 @@ export default async function BillingPage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login?message=Please%20login%20before%20opening%20billing.");
+    return (
+      <main className="grid bg-mist lg:grid-cols-[260px_1fr]">
+        <Sidebar />
+        <section className="p-4 sm:p-6 lg:p-8">
+          <SessionRepair label="Opening your billing page..." />
+        </section>
+      </main>
+    );
   }
 
   const { data: profile } = await supabase.from("profiles").select("workspace_id").eq("id", user.id).single();

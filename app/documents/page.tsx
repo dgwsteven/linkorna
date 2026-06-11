@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { Download, FileText, Search } from "lucide-react";
+import { SessionRepair } from "@/components/SessionRepair";
 import { Sidebar } from "@/components/Sidebar";
 import { employees } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
@@ -36,7 +36,14 @@ export default async function DocumentsPage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login?message=Please%20login%20before%20opening%20documents.");
+    return (
+      <main className="grid bg-mist lg:grid-cols-[260px_1fr]">
+        <Sidebar />
+        <section className="p-4 sm:p-6 lg:p-8">
+          <SessionRepair label="Opening your document library..." />
+        </section>
+      </main>
+    );
   }
 
   const { data: profile } = await supabase.from("profiles").select("workspace_id").eq("id", user.id).single();
