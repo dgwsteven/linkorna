@@ -105,7 +105,7 @@ export const navItems = [
   { label: "Overview", href: "/dashboard", icon: BriefcaseBusiness },
   { label: "AI Employees", href: "/dashboard#employees", icon: Globe2 },
   { label: "Recent Tasks", href: "/dashboard#tasks", icon: ClipboardCheck },
-  { label: "Documents", href: "/tasks/demo-001", icon: FileSearch },
+  { label: "Documents", href: "/documents", icon: FileSearch },
   { label: "Pricing", href: "/pricing", icon: BarChart3 },
   { label: "Admin", href: "/admin", icon: BriefcaseBusiness }
 ];
