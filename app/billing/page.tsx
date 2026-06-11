@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
-import { CheckoutButton } from "@/components/CheckoutButton";
 import { PlanBadge } from "@/components/PlanBadge";
 import { SessionRepair } from "@/components/SessionRepair";
 import { Sidebar } from "@/components/Sidebar";
@@ -120,16 +120,14 @@ export default async function BillingPage() {
                 <span className="text-4xl font-black text-navy">{plan.price}</span>
                 <span className="pb-1 text-sm font-bold text-steel">/month</span>
               </div>
-              <div className="mt-6 grid gap-2">
-                <CheckoutButton plan={plan.name as PlanName} channel="subscription">
-                  Card / PayPal subscription
-                </CheckoutButton>
-                <CheckoutButton plan={plan.name as PlanName} channel="china-wallet">
-                  Alipay / WeChat monthly pass
-                </CheckoutButton>
-              </div>
+              <Link
+                href={`/billing/checkout?plan=${encodeURIComponent(plan.name)}`}
+                className="mt-6 flex h-11 w-full items-center justify-center rounded-md bg-blue px-4 text-sm font-black text-white"
+              >
+                Choose plan
+              </Link>
               <p className="mt-3 text-xs leading-5 text-steel">
-                Alipay and WeChat Pay are handled as one-month access passes because Chinese wallets have recurring payment limitations.
+                Payment method selection happens on the next step.
               </p>
               <ul className="mt-5 space-y-2 text-sm leading-6 text-graphite">
                 {plan.includes.map((item) => (
