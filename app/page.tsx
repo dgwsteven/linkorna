@@ -2,6 +2,7 @@ import { AlertTriangle, FileText, Globe2, ShoppingCart } from "lucide-react";
 import { ButtonLink } from "@/components/ButtonLink";
 import { EmployeeCard } from "@/components/EmployeeCard";
 import { Header } from "@/components/Header";
+import { LegalFooter } from "@/components/LegalFooter";
 import { PricingCard } from "@/components/PricingCard";
 import { WorkflowSteps } from "@/components/WorkflowSteps";
 import { employees, plans } from "@/lib/data";
@@ -133,6 +134,7 @@ export default function Home() {
           <ButtonLink href="/register" variant="light">Start Task</ButtonLink>
         </div>
       </section>
+      <LegalFooter />
     </main>
   );
 }
