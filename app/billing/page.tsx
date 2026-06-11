@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
-import { CreditCard, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
+import { CheckoutButton } from "@/components/CheckoutButton";
 import { PlanBadge } from "@/components/PlanBadge";
 import { Sidebar } from "@/components/Sidebar";
 import { buildAccessState } from "@/lib/access-control";
@@ -11,6 +12,8 @@ type WorkspaceRow = {
   plan: PlanName | null;
   monthly_task_limit: number | null;
   created_at: string | null;
+  subscription_status?: string | null;
+  paid_until?: string | null;
 };
 
 export default async function BillingPage() {
@@ -31,7 +34,7 @@ export default async function BillingPage() {
 
   const [{ data: workspace }, { count: monthlyUsed }] = await Promise.all([
     workspaceId
-      ? supabase.from("workspaces").select("name, plan, monthly_task_limit, created_at").eq("id", workspaceId).single<WorkspaceRow>()
+      ? supabase.from("workspaces").select("*").eq("id", workspaceId).single<WorkspaceRow>()
       : Promise.resolve({ data: null }),
     workspaceId
       ? supabase
@@ -68,8 +71,8 @@ export default async function BillingPage() {
         <div className="mt-8 grid gap-5 md:grid-cols-3">
           <div className="rounded-lg border border-line border-t-4 border-t-blue bg-white p-5 shadow-sm">
             <div className="text-xs font-black uppercase text-steel">Trial status</div>
-            <div className="mt-2 text-3xl font-black text-navy">{access.fullAccess ? "Test" : access.trialActive ? `${access.trialDaysRemaining}d` : "Ended"}</div>
-            <p className="mt-1 text-sm text-steel">{access.fullAccess ? "Full test access enabled" : access.trialActive ? "Free trial remaining" : "Choose a paid plan to continue"}</p>
+            <div className="mt-2 text-3xl font-black text-navy">{access.fullAccess ? "Test" : access.paidActive ? "Paid" : access.trialActive ? `${access.trialDaysRemaining}d` : "Ended"}</div>
+            <p className="mt-1 text-sm text-steel">{access.fullAccess ? "Full test access enabled" : access.paidActive ? "Paid access active" : access.trialActive ? "Free trial remaining" : "Choose a paid plan to continue"}</p>
           </div>
           <div className="rounded-lg border border-line border-t-4 border-t-accent bg-white p-5 shadow-sm">
             <div className="text-xs font-black uppercase text-steel">Usage remaining</div>
@@ -79,7 +82,7 @@ export default async function BillingPage() {
           <div className="rounded-lg border border-line border-t-4 border-t-amber bg-white p-5 shadow-sm">
             <div className="text-xs font-black uppercase text-steel">Payment provider</div>
             <div className="mt-2 text-3xl font-black text-navy">Stripe</div>
-            <p className="mt-1 text-sm text-steel">Checkout integration prepared next</p>
+            <p className="mt-1 text-sm text-steel">Cards, PayPal, Alipay, WeChat Pay</p>
           </div>
         </div>
 
@@ -109,10 +112,17 @@ export default async function BillingPage() {
                 <span className="text-4xl font-black text-navy">{plan.price}</span>
                 <span className="pb-1 text-sm font-bold text-steel">/month</span>
               </div>
-              <button className="mt-6 flex h-11 w-full items-center justify-center gap-2 rounded-md bg-blue px-4 text-sm font-black text-white opacity-80" type="button">
-                <CreditCard className="h-4 w-4" />
-                Checkout coming next
-              </button>
+              <div className="mt-6 grid gap-2">
+                <CheckoutButton plan={plan.name as PlanName} channel="subscription">
+                  Card / PayPal subscription
+                </CheckoutButton>
+                <CheckoutButton plan={plan.name as PlanName} channel="china-wallet">
+                  Alipay / WeChat monthly pass
+                </CheckoutButton>
+              </div>
+              <p className="mt-3 text-xs leading-5 text-steel">
+                Alipay and WeChat Pay are handled as one-month access passes because Chinese wallets have recurring payment limitations.
+              </p>
               <ul className="mt-5 space-y-2 text-sm leading-6 text-graphite">
                 {plan.includes.map((item) => (
                   <li key={item}>- {item}</li>

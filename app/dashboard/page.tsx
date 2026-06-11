@@ -26,6 +26,8 @@ type WorkspaceRow = {
   plan: PlanName | null;
   monthly_task_limit: number | null;
   created_at: string | null;
+  subscription_status?: string | null;
+  paid_until?: string | null;
 };
 
 function employeeName(employeeId: string) {
@@ -65,7 +67,7 @@ export default async function DashboardPage() {
 
   const [{ data: workspace }, { data: recentTasks }] = await Promise.all([
     workspaceId
-      ? supabase.from("workspaces").select("name, plan, monthly_task_limit, created_at").eq("id", workspaceId).single<WorkspaceRow>()
+      ? supabase.from("workspaces").select("*").eq("id", workspaceId).single<WorkspaceRow>()
       : Promise.resolve({ data: null }),
     workspaceId
       ? supabase
@@ -164,7 +166,7 @@ export default async function DashboardPage() {
               </div>
               {!fullAccess ? (
                 <div className="mt-2 text-xs font-bold text-steel">
-                  {access.trialActive ? `${access.trialDaysRemaining} trial days remaining` : "Trial ended - choose a plan to continue"}
+                  {access.paidActive ? "Paid access active" : access.trialActive ? `${access.trialDaysRemaining} trial days remaining` : "Trial ended - choose a plan to continue"}
                 </div>
               ) : null}
             </div>

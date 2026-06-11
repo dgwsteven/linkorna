@@ -19,11 +19,14 @@ export type AccessWorkspace = {
   plan: PlanName | null;
   monthly_task_limit: number | null;
   created_at: string | null;
+  subscription_status?: string | null;
+  paid_until?: string | null;
 };
 
 export type AccessState = {
   plan: PlanName;
   fullAccess: boolean;
+  paidActive: boolean;
   trialActive: boolean;
   trialDaysRemaining: number;
   monthlyLimit: number;
@@ -48,6 +51,12 @@ export function canUsePlan(currentPlan: PlanName, requiredPlan: PlanName) {
   return planRank[currentPlan] >= planRank[requiredPlan];
 }
 
+function isFutureDate(value?: string | null, now = new Date()) {
+  if (!value) return false;
+  const date = new Date(value);
+  return !Number.isNaN(date.getTime()) && date.getTime() > now.getTime();
+}
+
 export function buildAccessState({
   email,
   workspace,
@@ -59,13 +68,18 @@ export function buildAccessState({
 }): AccessState {
   const fullAccess = hasFullEmployeeAccess(email);
   const plan = fullAccess ? "Executive" : workspace?.plan ?? "Starter";
+  const paidActive =
+    workspace?.subscription_status === "active" ||
+    workspace?.subscription_status === "trialing" ||
+    isFutureDate(workspace?.paid_until);
   const remainingTrialDays = trialDaysRemaining(workspace?.created_at);
-  const trialActive = !fullAccess && remainingTrialDays > 0;
+  const trialActive = !fullAccess && !paidActive && remainingTrialDays > 0;
   const monthlyLimit = fullAccess ? 9999 : workspace?.monthly_task_limit ?? planTaskLimits[plan];
 
   return {
     plan,
     fullAccess,
+    paidActive,
     trialActive,
     trialDaysRemaining: remainingTrialDays,
     monthlyLimit,
@@ -77,7 +91,7 @@ export function buildAccessState({
 export function canRunEmployee(access: AccessState, employeePlan: PlanName) {
   if (access.fullAccess) return { allowed: true, reason: "" };
 
-  if (!access.trialActive && access.plan === "Starter") {
+  if (!access.trialActive && !access.paidActive && access.plan === "Starter") {
     return {
       allowed: false,
       reason: "Your 30-day trial has ended. Please choose a paid plan to continue using Starter employees."

@@ -46,7 +46,7 @@ export async function POST(request: Request) {
   const [{ data: workspace }, { count: monthlyUsed }] = await Promise.all([
     supabase
       .from("workspaces")
-      .select("plan,monthly_task_limit,created_at")
+      .select("*")
       .eq("id", profile.workspace_id)
       .single(),
     supabase
