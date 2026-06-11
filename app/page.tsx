@@ -2,10 +2,10 @@ import { AlertTriangle, FileText, Globe2, ShoppingCart } from "lucide-react";
 import { ButtonLink } from "@/components/ButtonLink";
 import { EmployeeCard } from "@/components/EmployeeCard";
 import { Header } from "@/components/Header";
-import { LegalFooter } from "@/components/LegalFooter";
 import { PricingCard } from "@/components/PricingCard";
 import { WorkflowSteps } from "@/components/WorkflowSteps";
 import { employees, plans } from "@/lib/data";
+import Link from "next/link";
 
 const pains = [
   { title: "German client emails take too much time", icon: Globe2 },
@@ -19,19 +19,19 @@ const impactStats = [
     value: "6-10h",
     label: "saved per week",
     detail: "on email replies, supplier messages and meeting notes",
-    tone: "border-blue-200 bg-blue-50 text-blue-700"
+    tone: "border-l-blue"
   },
   {
     value: "30%",
     label: "less outside spend",
     detail: "by preparing first-pass contracts, listings and briefs in-house",
-    tone: "border-emerald-200 bg-emerald-50 text-emerald-700"
+    tone: "border-l-accent"
   },
   {
     value: "+15%",
     label: "sales lift potential",
     detail: "from sharper marketplace listings and competitor signals",
-    tone: "border-amber-200 bg-amber-50 text-amber-700"
+    tone: "border-l-amber"
   }
 ];
 
@@ -68,10 +68,10 @@ export default function Home() {
             </div>
             <div className="mt-5 grid gap-3 sm:grid-cols-3">
               {impactStats.map((item) => (
-                <div key={item.label} className={`rounded-md border p-4 ${item.tone}`}>
-                  <div className="text-2xl font-black">{item.value}</div>
-                  <div className="mt-1 text-xs font-black uppercase">{item.label}</div>
-                  <p className="mt-3 text-xs font-bold leading-5 text-graphite">{item.detail}</p>
+                <div key={item.label} className={`min-h-36 rounded-md border border-line border-l-4 bg-white p-4 ${item.tone}`}>
+                  <div className="text-3xl font-black leading-none text-navy">{item.value}</div>
+                  <div className="mt-2 text-xs font-black uppercase text-graphite">{item.label}</div>
+                  <p className="mt-3 text-xs font-bold leading-5 text-steel">{item.detail}</p>
                 </div>
               ))}
             </div>
@@ -126,15 +126,27 @@ export default function Home() {
       </section>
 
       <section className="bg-navy px-4 py-14 text-white sm:px-6 lg:px-8">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-6">
-          <div>
-            <h2 className="text-3xl font-black">Start your first AI employee task</h2>
-            <p className="mt-2 text-slate-300">Launch a business task with a dedicated AI employee in minutes.</p>
+        <div className="mx-auto max-w-7xl">
+          <div className="flex flex-wrap items-center justify-between gap-6">
+            <div>
+              <h2 className="text-3xl font-black">Start your first AI employee task</h2>
+              <p className="mt-2 text-slate-300">Launch a business task with a dedicated AI employee in minutes.</p>
+            </div>
+            <ButtonLink href="/register" variant="light">Start Task</ButtonLink>
           </div>
-          <ButtonLink href="/register" variant="light">Start Task</ButtonLink>
+          <div className="mt-10 flex flex-col gap-4 border-t border-white/15 pt-6 text-sm text-slate-300 md:flex-row md:items-center md:justify-between">
+            <div>
+              <div className="font-black text-white">LINKORNA</div>
+              <div className="mt-1">A service of GL Eudepot GmbH</div>
+            </div>
+            <nav className="flex flex-wrap gap-4 font-bold text-white">
+              <Link href="/impressum">Impressum</Link>
+              <Link href="/datenschutz">Datenschutz</Link>
+              <Link href="/cookies">Cookie Einstellungen</Link>
+            </nav>
+          </div>
         </div>
       </section>
-      <LegalFooter />
     </main>
   );
 }
