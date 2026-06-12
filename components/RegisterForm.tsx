@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 export function RegisterForm({ message }: { message?: string }) {
   const router = useRouter();
@@ -34,8 +35,24 @@ export function RegisterForm({ message }: { message?: string }) {
       return;
     }
 
-    router.refresh();
-    router.push("/dashboard");
+    const supabase = createClient();
+    const {
+      data: { session }
+    } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (session?.access_token && session?.refresh_token) {
+      await fetch("/api/auth/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          accessToken: session.access_token,
+          refreshToken: session.refresh_token
+        }),
+        credentials: "same-origin"
+      });
+    }
+
+    window.location.href = "/dashboard";
   }
 
   return (

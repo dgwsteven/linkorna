@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 export function LoginForm({ message, next = "/dashboard" }: { message?: string; next?: string }) {
   const router = useRouter();
@@ -18,22 +19,36 @@ export function LoginForm({ message, next = "/dashboard" }: { message?: string; 
     setError("");
     setLoading(true);
 
-    const response = await fetch("/api/auth/login", {
+    const supabase = createClient();
+    const {
+      data: { session },
+      error: loginError
+    } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (loginError || !session?.access_token || !session?.refresh_token) {
+      setError(loginError?.message || "Login failed.");
+      setLoading(false);
+      return;
+    }
+
+    const response = await fetch("/api/auth/sync", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({
+        accessToken: session.access_token,
+        refreshToken: session.refresh_token
+      }),
       credentials: "same-origin"
     });
     const payload = await response.json().catch(() => null);
 
     if (!response.ok) {
-      setError(payload?.error || "Login failed.");
+      setError(payload?.error || "Login session could not be synced.");
       setLoading(false);
       return;
     }
 
-    router.refresh();
-    router.push(next.startsWith("/") ? next : "/dashboard");
+    window.location.href = next.startsWith("/") ? next : "/dashboard";
   }
 
   return (

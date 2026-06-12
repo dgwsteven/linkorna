@@ -5,8 +5,8 @@ export const TEST_ACCOUNT_EMAIL = "s.dai@choicell.de";
 
 export const planTaskLimits: Record<PlanName, number> = {
   Starter: 80,
-  Business: 300,
-  Executive: 1000
+  Business: 150,
+  Executive: 300
 };
 
 const planRank: Record<PlanName, number> = {
@@ -74,7 +74,7 @@ export function buildAccessState({
     isFutureDate(workspace?.paid_until);
   const remainingTrialDays = trialDaysRemaining(workspace?.created_at);
   const trialActive = !fullAccess && !paidActive && remainingTrialDays > 0;
-  const monthlyLimit = fullAccess ? 9999 : workspace?.monthly_task_limit ?? planTaskLimits[plan];
+  const monthlyLimit = fullAccess ? 9999 : planTaskLimits[plan];
 
   return {
     plan,
