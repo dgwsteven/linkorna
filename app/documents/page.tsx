@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Download, FileText, Search } from "lucide-react";
-import { SessionRepair } from "@/components/SessionRepair";
 import { Sidebar } from "@/components/Sidebar";
 import { employees } from "@/lib/data";
 import { getLinkornaAuthContext } from "@/lib/linkorna-session";
@@ -40,7 +39,20 @@ export default async function DocumentsPage() {
       <main className="grid bg-mist lg:grid-cols-[260px_1fr]">
         <Sidebar />
         <section className="p-4 sm:p-6 lg:p-8">
-          <SessionRepair label="Opening your document library..." />
+          <div className="rounded-lg border border-line bg-white p-6 shadow-sm">
+            <h1 className="text-lg font-black text-navy">Login session was not received.</h1>
+            <p className="mt-2 text-sm leading-6 text-steel">
+              LINKORNA could not read the secure login cookie on this request.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Link href="/auth/check?next=/documents" className="inline-flex h-11 items-center rounded-md bg-blue px-5 text-sm font-black text-white">
+                Check login session
+              </Link>
+              <Link href="/login?next=/documents" className="inline-flex h-11 items-center rounded-md border border-line bg-white px-5 text-sm font-black text-navy">
+                Login again
+              </Link>
+            </div>
+          </div>
         </section>
       </main>
     );

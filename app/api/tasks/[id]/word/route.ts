@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { Document, HeadingLevel, Packer, Paragraph, TextRun } from "docx";
 import { employees } from "@/lib/data";
-import { createClient } from "@/lib/supabase/server";
+import { createRequestClient } from "@/lib/supabase/request";
 import type { GeneratedTaskOutput } from "@/lib/task-output";
 
 type TaskRecord = {
@@ -9,6 +9,7 @@ type TaskRecord = {
   title: string;
   status: string;
   employee_id: string;
+  workspace_id: string;
   output: GeneratedTaskOutput | null;
   created_at: string;
 };
@@ -17,18 +18,25 @@ function safeFileName(value: string) {
   return value.replace(/[^a-z0-9-_]+/gi, "-").replace(/^-+|-+$/g, "").slice(0, 80) || "linkorna-report";
 }
 
-export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await createRequestClient(request);
 
   if (!user) {
     return new Response("Authentication required", { status: 401 });
   }
 
-  const { data: task } = await supabase.from("tasks").select("id,title,status,employee_id,output,created_at").eq("id", id).single<TaskRecord>();
+  const { data: profile } = await supabase.from("profiles").select("workspace_id").eq("id", user.id).single();
+  if (!profile?.workspace_id) {
+    return new Response("Workspace profile not found", { status: 400 });
+  }
+
+  const { data: task } = await supabase
+    .from("tasks")
+    .select("id,title,status,employee_id,workspace_id,output,created_at")
+    .eq("id", id)
+    .eq("workspace_id", profile.workspace_id)
+    .single<TaskRecord>();
 
   if (!task) {
     notFound();

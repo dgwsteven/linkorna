@@ -2,7 +2,6 @@
 
 import { createContext, type FormEvent, type ReactNode, useContext, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 
 const FormSubmittingContext = createContext(false);
 const FormPhaseContext = createContext<"idle" | "checking" | "working">("idle");
@@ -47,31 +46,15 @@ export function EmployeeTaskForm({
         return;
       }
 
-      const supabase = createClient();
-      const {
-        data: { session }
-      } = await supabase.auth.getSession();
-      let accessToken = session?.access_token;
-
-      if (!accessToken) {
-        const {
-          data: { session: refreshedSession }
-        } = await supabase.auth.refreshSession();
-        accessToken = refreshedSession?.access_token;
-      }
-
-      const authHeaders = accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined;
-
       const authResponse = await fetch("/api/auth/status", {
         method: "GET",
         credentials: "same-origin",
-        cache: "no-store",
-        headers: authHeaders
+        cache: "no-store"
       });
       const authStatus = await authResponse.json().catch(() => null);
 
       if (!authStatus?.authenticated) {
-        setError(`Your login session is not active on ${currentOrigin}. Please open Login in another tab, then return here and click Generate again. Current response: ${JSON.stringify(authStatus)}`);
+        setError(`Your login session is not active on ${currentOrigin}. Please login again on linkorna.com. Current response: ${JSON.stringify(authStatus)}`);
         return;
       }
 
@@ -82,8 +65,7 @@ export function EmployeeTaskForm({
       const response = await fetch(`/api/tasks?employeeId=${encodeURIComponent(employeeId)}`, {
         method: "POST",
         body: formData,
-        credentials: "same-origin",
-        ...(authHeaders ? { headers: authHeaders } : {})
+        credentials: "same-origin"
       });
 
       const payload = await response.json().catch(() => null);

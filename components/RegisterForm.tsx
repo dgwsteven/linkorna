@@ -1,12 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { createClient } from "@/lib/supabase/client";
 
 export function RegisterForm({ message }: { message?: string }) {
-  const router = useRouter();
   const [error, setError] = useState(message || "");
   const [loading, setLoading] = useState(false);
 
@@ -35,25 +32,7 @@ export function RegisterForm({ message }: { message?: string }) {
       return;
     }
 
-    if (payload?.accessToken && payload?.refreshToken) {
-      const supabase = createClient();
-      await supabase.auth.setSession({
-        access_token: payload.accessToken,
-        refresh_token: payload.refreshToken
-      });
-
-      await fetch("/api/auth/sync", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          accessToken: payload.accessToken,
-          refreshToken: payload.refreshToken
-        }),
-        credentials: "same-origin"
-      });
-    }
-
-    window.location.href = "/dashboard";
+    window.location.href = "/auth/check?next=/dashboard";
   }
 
   return (

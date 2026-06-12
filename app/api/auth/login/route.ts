@@ -44,13 +44,34 @@ export async function POST(request: NextRequest) {
         <html>
           <head>
             <meta charset="utf-8" />
-            <meta http-equiv="refresh" content="0;url=${next.replace(/"/g, "%22")}" />
             <title>Logging in...</title>
           </head>
-          <body style="font-family: Arial, sans-serif; padding: 32px;">
-            <p>Login successful. Opening LINKORNA dashboard...</p>
-            <p><a href="${next.replace(/"/g, "%22")}">Continue</a></p>
-            <script>window.location.replace(${JSON.stringify(next)});</script>
+          <body style="font-family: Arial, sans-serif; padding: 32px; color: #071844;">
+            <h1>Login successful</h1>
+            <p>LINKORNA is confirming your secure login session before opening the dashboard.</p>
+            <p id="status">Checking session...</p>
+            <p><a href="/auth/check?next=${encodeURIComponent(next)}">Open session check</a></p>
+            <script>
+              (async function () {
+                const status = document.getElementById("status");
+                for (let attempt = 0; attempt < 8; attempt += 1) {
+                  try {
+                    const response = await fetch("/api/auth/status", { credentials: "same-origin", cache: "no-store" });
+                    const payload = await response.json();
+                    if (payload && payload.authenticated) {
+                      status.textContent = "Session ready. Opening dashboard...";
+                      window.location.replace(${JSON.stringify(next)});
+                      return;
+                    }
+                    status.textContent = "Waiting for session cookie...";
+                  } catch (error) {
+                    status.textContent = "Checking session again...";
+                  }
+                  await new Promise((resolve) => setTimeout(resolve, 350));
+                }
+                status.textContent = "Login succeeded, but the browser did not return the login cookie. Please open the session check link.";
+              })();
+            </script>
           </body>
         </html>`,
         {

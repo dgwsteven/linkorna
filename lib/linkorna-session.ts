@@ -4,18 +4,12 @@ import { createClient as createSupabaseClient, type SupabaseClient, type User } 
 import { createHmac, timingSafeEqual } from "crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-export const LINKORNA_SESSION_COOKIE = "linkorna_session";
 export const LINKORNA_USER_COOKIE = "linkorna_user";
-
-export type LinkornaSession = {
-  accessToken: string;
-  refreshToken: string;
-};
 
 export type LinkornaAuthContext = {
   supabase: SupabaseClient;
   user: User | null;
-  source: "linkorna" | "signed" | "none";
+  source: "signed" | "none";
 };
 
 export type SignedUserSession = {
@@ -28,27 +22,6 @@ function signingSecret() {
   const secret = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   if (!secret) throw new Error("Linkorna session signing secret is not configured.");
   return secret;
-}
-
-function cookieDomain() {
-  return process.env.VERCEL_ENV === "production" ? ".linkorna.com" : undefined;
-}
-
-function encodeSession(session: LinkornaSession) {
-  return Buffer.from(JSON.stringify(session), "utf8").toString("base64url");
-}
-
-function decodeSession(value?: string | null): LinkornaSession | null {
-  if (!value) return null;
-
-  try {
-    const parsed = JSON.parse(Buffer.from(value, "base64url").toString("utf8"));
-    const accessToken = typeof parsed.accessToken === "string" ? parsed.accessToken : "";
-    const refreshToken = typeof parsed.refreshToken === "string" ? parsed.refreshToken : "";
-    return accessToken && refreshToken ? { accessToken, refreshToken } : null;
-  } catch {
-    return null;
-  }
 }
 
 function signPayload(payload: string) {
@@ -84,16 +57,9 @@ function decodeSignedUserSession(value?: string | null): SignedUserSession | nul
   }
 }
 
-export function sessionFromCookieHeader(cookieHeader: string | null) {
-  const cookies = (cookieHeader || "").split(";").map((item) => item.trim());
-  const match = cookies.find((item) => item.startsWith(`${LINKORNA_SESSION_COOKIE}=`));
-  const value = match ? decodeURIComponent(match.slice(LINKORNA_SESSION_COOKIE.length + 1)) : "";
-  return decodeSession(value);
-}
-
 export function signedUserFromCookieHeader(cookieHeader: string | null) {
-  const cookies = (cookieHeader || "").split(";").map((item) => item.trim());
-  const matches = cookies.filter((item) => item.startsWith(`${LINKORNA_USER_COOKIE}=`));
+  const cookieParts = (cookieHeader || "").split(";").map((item) => item.trim());
+  const matches = cookieParts.filter((item) => item.startsWith(`${LINKORNA_USER_COOKIE}=`));
 
   for (const match of matches) {
     const value = decodeURIComponent(match.slice(LINKORNA_USER_COOKIE.length + 1));
@@ -102,11 +68,6 @@ export function signedUserFromCookieHeader(cookieHeader: string | null) {
   }
 
   return null;
-}
-
-export async function sessionFromServerCookies() {
-  const cookieStore = await cookies();
-  return decodeSession(cookieStore.get(LINKORNA_SESSION_COOKIE)?.value);
 }
 
 export async function signedUserFromServerCookies() {
@@ -123,17 +84,6 @@ export async function signedUserFromServerCookies() {
   }
 
   return null;
-}
-
-export function setLinkornaSessionCookie(response: NextResponse, session: LinkornaSession) {
-  response.cookies.set(LINKORNA_SESSION_COOKIE, encodeSession(session), {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-    path: "/",
-    domain: cookieDomain(),
-    maxAge: 60 * 60 * 24 * 30
-  });
 }
 
 export function setSignedUserCookie(response: NextResponse, user: { id: string; email?: string | null }) {
@@ -153,27 +103,12 @@ export function setSignedUserCookie(response: NextResponse, user: { id: string; 
 }
 
 export function clearLinkornaSessionCookie(response: NextResponse) {
-  response.cookies.set(LINKORNA_SESSION_COOKIE, "", {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-    path: "/",
-    domain: cookieDomain(),
-    maxAge: 0
-  });
-  response.cookies.set(LINKORNA_SESSION_COOKIE, "", {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 0
-  });
   response.cookies.set(LINKORNA_USER_COOKIE, "", {
     httpOnly: true,
     secure: true,
     sameSite: "lax",
     path: "/",
-    domain: cookieDomain(),
+    domain: ".linkorna.com",
     maxAge: 0
   });
   response.cookies.set(LINKORNA_USER_COOKIE, "", {
@@ -183,24 +118,6 @@ export function clearLinkornaSessionCookie(response: NextResponse) {
     path: "/",
     maxAge: 0
   });
-}
-
-export function clientForAccessToken(accessToken: string) {
-  return createSupabaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    {
-      global: {
-        headers: {
-          Authorization: `Bearer ${accessToken}`
-        }
-      },
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false
-      }
-    }
-  );
 }
 
 export async function getLinkornaAuthContext(): Promise<LinkornaAuthContext> {
@@ -213,27 +130,14 @@ export async function getLinkornaAuthContext(): Promise<LinkornaAuthContext> {
     };
   }
 
-  const session = await sessionFromServerCookies();
-  const supabase = session
-    ? clientForAccessToken(session.accessToken)
-    : createSupabaseClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-        {
-          auth: {
-            persistSession: false,
-            autoRefreshToken: false
-          }
-        }
-      );
-
-  if (!session) {
-    return { supabase, user: null, source: "none" };
-  }
-
-  const {
-    data: { user }
-  } = await supabase.auth.getUser(session.accessToken);
-
-  return { supabase, user, source: user ? "linkorna" : "none" };
+  return {
+    supabase: createSupabaseClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false
+      }
+    }) as SupabaseClient,
+    user: null,
+    source: "none"
+  };
 }

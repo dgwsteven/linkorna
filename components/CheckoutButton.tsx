@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { CreditCard } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 import type { CheckoutChannel } from "@/lib/billing";
 import type { PlanName } from "@/lib/data";
 
@@ -17,37 +16,6 @@ export function CheckoutButton({
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
-  async function syncBrowserSession() {
-    const supabase = createClient();
-    const {
-      data: { session }
-    } = await supabase.auth.getSession();
-    let currentSession = session;
-
-    if (!currentSession?.access_token || !currentSession?.refresh_token) {
-      const {
-        data: { session: refreshedSession }
-      } = await supabase.auth.refreshSession();
-      currentSession = refreshedSession;
-    }
-
-    if (!currentSession?.access_token || !currentSession?.refresh_token) {
-      return false;
-    }
-
-    const response = await fetch("/api/auth/sync", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        accessToken: currentSession.access_token,
-        refreshToken: currentSession.refresh_token
-      }),
-      credentials: "same-origin"
-    });
-
-    return response.ok;
-  }
 
   async function createCheckoutSession() {
     const response = await fetch("/api/billing/checkout", {
@@ -68,16 +36,9 @@ export function CheckoutButton({
     try {
       let { response, payload } = await createCheckoutSession();
 
-      if (response.status === 401) {
-        const synced = await syncBrowserSession();
-        if (synced) {
-          ({ response, payload } = await createCheckoutSession());
-        }
-      }
-
       if (!response.ok || !payload?.url) {
         if (response.status === 401) {
-          throw new Error("Please login once, then return to checkout.");
+          throw new Error("Please login again, then return to checkout.");
         }
         throw new Error(payload?.error || "Checkout could not be started.");
       }

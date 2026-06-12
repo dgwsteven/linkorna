@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import { Header } from "@/components/Header";
-import { SessionRepair } from "@/components/SessionRepair";
 import { TaskResultActions } from "@/components/TaskResultActions";
 import { employees } from "@/lib/data";
 import { getLinkornaAuthContext } from "@/lib/linkorna-session";
@@ -43,7 +42,20 @@ export default async function TaskResultPage({ params }: { params: Promise<{ id:
       <main>
         <Header />
         <section className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
-          <SessionRepair label="Opening your task result..." />
+          <div className="rounded-lg border border-line bg-white p-6 shadow-sm">
+            <h1 className="text-lg font-black text-navy">Login session was not received.</h1>
+            <p className="mt-2 text-sm leading-6 text-steel">
+              LINKORNA could not read the secure login cookie on this task result request.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <a href={`/auth/check?next=/tasks/${id}`} className="inline-flex h-11 items-center rounded-md bg-blue px-5 text-sm font-black text-white">
+                Check login session
+              </a>
+              <a href={`/login?next=/tasks/${id}`} className="inline-flex h-11 items-center rounded-md border border-line bg-white px-5 text-sm font-black text-navy">
+                Login again
+              </a>
+            </div>
+          </div>
         </section>
       </main>
     );
