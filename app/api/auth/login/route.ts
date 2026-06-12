@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
   }
 
   const response = isForm
-    ? NextResponse.redirect(new URL(`/auth/check?next=${encodeURIComponent(next)}`, request.url), 303)
+    ? NextResponse.redirect(new URL(next, request.url), 303)
     : NextResponse.json({
         ok: true,
         accessToken: data.session?.access_token ?? null,
