@@ -22,20 +22,27 @@ export async function Header() {
         </nav>
         <div className="flex items-center gap-2">
           {user ? (
-            <Link href="/logout" className="hidden h-10 items-center gap-2 rounded-md px-3 text-sm font-bold text-graphite sm:flex">
-              <LogOut className="h-4 w-4" />
-              Logout
-            </Link>
+            <>
+              <Link href="/dashboard" className="flex h-10 items-center rounded-md bg-blue px-4 text-sm font-bold text-white">
+                Dashboard
+              </Link>
+              <Link href="/logout" className="hidden h-10 items-center gap-2 rounded-md px-3 text-sm font-bold text-graphite sm:flex">
+                <LogOut className="h-4 w-4" />
+                Logout
+              </Link>
+            </>
           ) : (
-            <Link href="/login" className="hidden h-10 items-center gap-2 rounded-md px-3 text-sm font-bold text-graphite sm:flex">
-              <LogIn className="h-4 w-4" />
-              Login
-            </Link>
+            <>
+              <Link href="/login" className="hidden h-10 items-center gap-2 rounded-md px-3 text-sm font-bold text-graphite sm:flex">
+                <LogIn className="h-4 w-4" />
+                Login
+              </Link>
+              <Link href="/employees/german-email" className="flex h-10 items-center gap-2 rounded-md bg-blue px-4 text-sm font-bold text-white">
+                Start
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </>
           )}
-          <Link href="/employees/german-email" className="flex h-10 items-center gap-2 rounded-md bg-blue px-4 text-sm font-bold text-white">
-            Start
-            <ArrowRight className="h-4 w-4" />
-          </Link>
         </div>
       </div>
     </header>
