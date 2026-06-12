@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { createClient as createSupabaseClient, type SupabaseClient, type User } from "@supabase/supabase-js";
 import { createHmac, timingSafeEqual } from "crypto";
@@ -93,9 +93,15 @@ export function sessionFromCookieHeader(cookieHeader: string | null) {
 
 export function signedUserFromCookieHeader(cookieHeader: string | null) {
   const cookies = (cookieHeader || "").split(";").map((item) => item.trim());
-  const match = cookies.find((item) => item.startsWith(`${LINKORNA_USER_COOKIE}=`));
-  const value = match ? decodeURIComponent(match.slice(LINKORNA_USER_COOKIE.length + 1)) : "";
-  return decodeSignedUserSession(value);
+  const matches = cookies.filter((item) => item.startsWith(`${LINKORNA_USER_COOKIE}=`));
+
+  for (const match of matches) {
+    const value = decodeURIComponent(match.slice(LINKORNA_USER_COOKIE.length + 1));
+    const session = decodeSignedUserSession(value);
+    if (session) return session;
+  }
+
+  return null;
 }
 
 export async function sessionFromServerCookies() {
@@ -104,8 +110,19 @@ export async function sessionFromServerCookies() {
 }
 
 export async function signedUserFromServerCookies() {
+  const headerStore = await headers();
+  const fromHeader = signedUserFromCookieHeader(headerStore.get("cookie"));
+  if (fromHeader) return fromHeader;
+
   const cookieStore = await cookies();
-  return decodeSignedUserSession(cookieStore.get(LINKORNA_USER_COOKIE)?.value);
+  const allSignedCookies = cookieStore.getAll(LINKORNA_USER_COOKIE);
+
+  for (const cookie of allSignedCookies) {
+    const session = decodeSignedUserSession(cookie.value);
+    if (session) return session;
+  }
+
+  return null;
 }
 
 export function setLinkornaSessionCookie(response: NextResponse, session: LinkornaSession) {
@@ -125,19 +142,6 @@ export function setSignedUserCookie(response: NextResponse, user: { id: string; 
     email: user.email ?? null,
     expiresAt: Date.now() + 1000 * 60 * 60 * 24 * 30
   });
-
-  response.cookies.set(
-    LINKORNA_USER_COOKIE,
-    value,
-    {
-      httpOnly: true,
-      secure: true,
-      sameSite: "lax",
-      path: "/",
-      domain: cookieDomain(),
-      maxAge: 60 * 60 * 24 * 30
-    }
-  );
 
   response.cookies.set(LINKORNA_USER_COOKIE, value, {
     httpOnly: true,
