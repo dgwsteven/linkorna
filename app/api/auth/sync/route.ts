@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { setLinkornaSessionCookie } from "@/lib/linkorna-session";
+import { clientForAccessToken, setLinkornaSessionCookie, setSignedUserCookie } from "@/lib/linkorna-session";
 
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({}));
@@ -38,6 +38,12 @@ export async function POST(request: NextRequest) {
   const response = NextResponse.json({ ok: true });
   cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
   setLinkornaSessionCookie(response, { accessToken, refreshToken });
+  const {
+    data: { user }
+  } = await clientForAccessToken(accessToken).auth.getUser(accessToken);
+  if (user) {
+    setSignedUserCookie(response, user);
+  }
 
   return response;
 }

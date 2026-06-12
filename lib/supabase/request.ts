@@ -1,11 +1,12 @@
 import { createClient as createSupabaseClient, type SupabaseClient, type User } from "@supabase/supabase-js";
 import { createClient as createServerSupabaseClient } from "@/lib/supabase/server";
-import { clientForAccessToken, sessionFromCookieHeader } from "@/lib/linkorna-session";
+import { clientForAccessToken, sessionFromCookieHeader, signedUserFromCookieHeader } from "@/lib/linkorna-session";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export type RequestAuth = {
   supabase: SupabaseClient;
   user: User | null;
-  source: "linkorna" | "cookie" | "bearer" | "none";
+  source: "signed" | "linkorna" | "cookie" | "bearer" | "none";
 };
 
 function bearerToken(request: Request) {
@@ -15,6 +16,15 @@ function bearerToken(request: Request) {
 }
 
 export async function createRequestClient(request: Request): Promise<RequestAuth> {
+  const signedUser = signedUserFromCookieHeader(request.headers.get("cookie"));
+  if (signedUser) {
+    return {
+      supabase: createAdminClient() as SupabaseClient,
+      user: { id: signedUser.userId, email: signedUser.email } as User,
+      source: "signed"
+    };
+  }
+
   const linkornaSession = sessionFromCookieHeader(request.headers.get("cookie"));
   if (linkornaSession) {
     const linkornaClient = clientForAccessToken(linkornaSession.accessToken);
