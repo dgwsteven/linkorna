@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { EmployeeCard } from "@/components/EmployeeCard";
 import { PlanBadge } from "@/components/PlanBadge";
+import { SessionRepair } from "@/components/SessionRepair";
 import { Sidebar } from "@/components/Sidebar";
 import { buildAccessState, canRunEmployee } from "@/lib/access-control";
 import { employees, type PlanName } from "@/lib/data";
@@ -59,7 +59,14 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login?message=Please%20login%20before%20opening%20the%20dashboard.");
+    return (
+      <main className="grid bg-mist lg:grid-cols-[260px_1fr]">
+        <Sidebar />
+        <section className="p-4 sm:p-6 lg:p-8">
+          <SessionRepair label="Opening your dashboard..." />
+        </section>
+      </main>
+    );
   }
 
   const { data: profile } = await supabase.from("profiles").select("workspace_id, full_name, company_name").eq("id", user.id).single();

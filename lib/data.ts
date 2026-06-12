@@ -108,8 +108,7 @@ export const navItems = [
   { label: "Recent Tasks", href: "/dashboard#tasks", icon: ClipboardCheck },
   { label: "Documents", href: "/documents", icon: FileSearch },
   { label: "Billing", href: "/billing", icon: CreditCard },
-  { label: "Pricing", href: "/pricing", icon: BarChart3 },
-  { label: "Admin", href: "/admin", icon: BriefcaseBusiness }
+  { label: "Pricing", href: "/pricing", icon: BarChart3 }
 ];
 
 export const recentTasks = [

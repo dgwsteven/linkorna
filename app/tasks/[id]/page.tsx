@@ -1,5 +1,6 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { Header } from "@/components/Header";
+import { SessionRepair } from "@/components/SessionRepair";
 import { TaskResultActions } from "@/components/TaskResultActions";
 import { employees } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
@@ -41,7 +42,14 @@ export default async function TaskResultPage({ params }: { params: Promise<{ id:
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login?message=Please%20login%20before%20viewing%20task%20results.");
+    return (
+      <main>
+        <Header />
+        <section className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
+          <SessionRepair label="Opening your task result..." />
+        </section>
+      </main>
+    );
   }
 
   const { data: task } = await supabase.from("tasks").select("*").eq("id", id).single<TaskRecord>();
