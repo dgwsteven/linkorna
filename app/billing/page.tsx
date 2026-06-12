@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
 import { PlanBadge } from "@/components/PlanBadge";
-import { SessionRepair } from "@/components/SessionRepair";
 import { Sidebar } from "@/components/Sidebar";
 import { buildAccessState } from "@/lib/access-control";
 import { plans, type PlanName } from "@/lib/data";
@@ -26,18 +25,9 @@ export default async function BillingPage() {
     data: { user }
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    return (
-      <main className="grid bg-mist lg:grid-cols-[260px_1fr]">
-        <Sidebar />
-        <section className="p-4 sm:p-6 lg:p-8">
-          <SessionRepair label="Opening your billing page..." />
-        </section>
-      </main>
-    );
-  }
-
-  const { data: profile } = await supabase.from("profiles").select("workspace_id").eq("id", user.id).single();
+  const { data: profile } = user
+    ? await supabase.from("profiles").select("workspace_id").eq("id", user.id).single()
+    : { data: null };
   const workspaceId = profile?.workspace_id;
   const monthStart = new Date();
   monthStart.setUTCDate(1);
@@ -56,7 +46,9 @@ export default async function BillingPage() {
       : Promise.resolve({ count: 0 })
   ]);
 
-  const access = buildAccessState({ email: user.email, workspace, monthlyUsed: monthlyUsed ?? 0 });
+  const access = user
+    ? buildAccessState({ email: user.email, workspace, monthlyUsed: monthlyUsed ?? 0 })
+    : null;
 
   return (
     <main className="grid bg-mist lg:grid-cols-[260px_1fr]">
@@ -71,9 +63,9 @@ export default async function BillingPage() {
           <div className="rounded-lg border border-line bg-white p-4 shadow-sm">
             <div className="text-xs font-black uppercase text-steel">Current access</div>
             <div className="mt-2 flex items-center gap-3">
-              <PlanBadge plan={access.plan} />
+              <PlanBadge plan={access?.plan ?? "Starter"} />
               <span className="text-sm font-bold text-graphite">
-                {access.monthlyUsed} / {access.monthlyLimit} tasks used
+                {access ? `${access.monthlyUsed} / ${access.monthlyLimit} tasks used` : "Login will sync at checkout"}
               </span>
             </div>
           </div>
@@ -82,12 +74,12 @@ export default async function BillingPage() {
         <div className="mt-8 grid gap-5 md:grid-cols-3">
           <div className="rounded-lg border border-line border-t-4 border-t-blue bg-white p-5 shadow-sm">
             <div className="text-xs font-black uppercase text-steel">Trial status</div>
-            <div className="mt-2 text-3xl font-black text-navy">{access.fullAccess ? "Test" : access.paidActive ? "Paid" : access.trialActive ? `${access.trialDaysRemaining}d` : "Ended"}</div>
-            <p className="mt-1 text-sm text-steel">{access.fullAccess ? "Full test access enabled" : access.paidActive ? "Paid access active" : access.trialActive ? "Free trial remaining" : "Choose a paid plan to continue"}</p>
+            <div className="mt-2 text-3xl font-black text-navy">{access ? (access.fullAccess ? "Test" : access.paidActive ? "Paid" : access.trialActive ? `${access.trialDaysRemaining}d` : "Ended") : "Ready"}</div>
+            <p className="mt-1 text-sm text-steel">{access ? (access.fullAccess ? "Full test access enabled" : access.paidActive ? "Paid access active" : access.trialActive ? "Free trial remaining" : "Choose a paid plan to continue") : "Choose a plan to continue"}</p>
           </div>
           <div className="rounded-lg border border-line border-t-4 border-t-accent bg-white p-5 shadow-sm">
             <div className="text-xs font-black uppercase text-steel">Usage remaining</div>
-            <div className="mt-2 text-3xl font-black text-navy">{access.usageRemaining}</div>
+            <div className="mt-2 text-3xl font-black text-navy">{access?.usageRemaining ?? "-"}</div>
             <p className="mt-1 text-sm text-steel">Tasks available this month</p>
           </div>
           <div className="rounded-lg border border-line border-t-4 border-t-amber bg-white p-5 shadow-sm">

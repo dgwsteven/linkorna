@@ -3,11 +3,9 @@ import { redirect } from "next/navigation";
 import { ArrowLeft, CreditCard, WalletCards } from "lucide-react";
 import { CheckoutButton } from "@/components/CheckoutButton";
 import { PlanBadge } from "@/components/PlanBadge";
-import { SessionRepair } from "@/components/SessionRepair";
 import { Sidebar } from "@/components/Sidebar";
 import { billingPlans, isPlanName } from "@/lib/billing";
 import { type PlanName } from "@/lib/data";
-import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -15,22 +13,6 @@ export const revalidate = 0;
 export default async function BillingCheckoutPage({ searchParams }: { searchParams: Promise<{ plan?: string }> }) {
   const { plan: rawPlan } = await searchParams;
   const plan = isPlanName(rawPlan) ? rawPlan : null;
-
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return (
-      <main className="grid bg-mist lg:grid-cols-[260px_1fr]">
-        <Sidebar />
-        <section className="p-4 sm:p-6 lg:p-8">
-          <SessionRepair label="Opening your checkout page..." />
-        </section>
-      </main>
-    );
-  }
 
   if (!plan) {
     redirect("/billing");

@@ -18,7 +18,10 @@ export function PricingCard({ plan, featured }: { plan: Plan; featured?: boolean
         <span className="text-4xl font-black text-navy">{plan.price}</span>
         <span className="pb-1 text-sm font-bold text-steel">/month</span>
       </div>
-      <Link href="/register" className={`mt-6 flex h-11 items-center justify-center rounded-md text-sm font-black ${featured ? "bg-blue text-white" : "border border-line bg-white text-navy"}`}>
+      <Link
+        href={`/billing/checkout?plan=${encodeURIComponent(plan.name)}`}
+        className={`mt-6 flex h-11 items-center justify-center rounded-md text-sm font-black ${featured ? "bg-blue text-white" : "border border-line bg-white text-navy"}`}
+      >
         {plan.button}
       </Link>
       <div className="mt-6">
