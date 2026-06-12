@@ -3,7 +3,7 @@ import { Download, FileText, Search } from "lucide-react";
 import { SessionRepair } from "@/components/SessionRepair";
 import { Sidebar } from "@/components/Sidebar";
 import { employees } from "@/lib/data";
-import { createClient } from "@/lib/supabase/server";
+import { getLinkornaAuthContext } from "@/lib/linkorna-session";
 
 type DocumentTask = {
   id: string;
@@ -33,10 +33,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function DocumentsPage() {
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getLinkornaAuthContext();
 
   if (!user) {
     return (

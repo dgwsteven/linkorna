@@ -5,7 +5,7 @@ import { PlanBadge } from "@/components/PlanBadge";
 import { Sidebar } from "@/components/Sidebar";
 import { buildAccessState } from "@/lib/access-control";
 import { plans, type PlanName } from "@/lib/data";
-import { createClient } from "@/lib/supabase/server";
+import { getLinkornaAuthContext } from "@/lib/linkorna-session";
 
 type WorkspaceRow = {
   name: string | null;
@@ -20,10 +20,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function BillingPage() {
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getLinkornaAuthContext();
 
   const { data: profile } = user
     ? await supabase.from("profiles").select("workspace_id").eq("id", user.id).single()

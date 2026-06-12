@@ -3,7 +3,7 @@ import { Header } from "@/components/Header";
 import { SessionRepair } from "@/components/SessionRepair";
 import { TaskResultActions } from "@/components/TaskResultActions";
 import { employees } from "@/lib/data";
-import { createClient } from "@/lib/supabase/server";
+import { getLinkornaAuthContext } from "@/lib/linkorna-session";
 import type { GeneratedTaskOutput } from "@/lib/task-output";
 
 type TaskRecord = {
@@ -36,10 +36,7 @@ function formatInputSummary(input: Record<string, unknown> | null) {
 
 export default async function TaskResultPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getLinkornaAuthContext();
 
   if (!user) {
     return (

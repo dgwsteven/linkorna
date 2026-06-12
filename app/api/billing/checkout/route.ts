@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { billingPlans, isCheckoutChannel, isPlanName } from "@/lib/billing";
-import { createClient } from "@/lib/supabase/server";
+import { createRequestClient } from "@/lib/supabase/request";
 import { getStripe } from "@/lib/stripe";
 
 export async function POST(request: Request) {
@@ -12,10 +12,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid billing plan or payment channel." }, { status: 400 });
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await createRequestClient(request);
 
   if (!user) {
     return NextResponse.json({ error: "Authentication required." }, { status: 401 });

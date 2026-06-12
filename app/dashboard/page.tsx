@@ -6,7 +6,7 @@ import { SessionRepair } from "@/components/SessionRepair";
 import { Sidebar } from "@/components/Sidebar";
 import { buildAccessState, canRunEmployee } from "@/lib/access-control";
 import { employees, type PlanName } from "@/lib/data";
-import { createClient } from "@/lib/supabase/server";
+import { getLinkornaAuthContext } from "@/lib/linkorna-session";
 
 type TaskRow = {
   id: string;
@@ -53,10 +53,7 @@ const usageColors: Record<string, string> = {
 };
 
 export default async function DashboardPage() {
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getLinkornaAuthContext();
 
   if (!user) {
     return (
