@@ -157,12 +157,26 @@ export function clearLinkornaSessionCookie(response: NextResponse) {
     domain: cookieDomain(),
     maxAge: 0
   });
+  response.cookies.set(LINKORNA_SESSION_COOKIE, "", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0
+  });
   response.cookies.set(LINKORNA_USER_COOKIE, "", {
     httpOnly: true,
     secure: true,
     sameSite: "lax",
     path: "/",
     domain: cookieDomain(),
+    maxAge: 0
+  });
+  response.cookies.set(LINKORNA_USER_COOKIE, "", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    path: "/",
     maxAge: 0
   });
 }
