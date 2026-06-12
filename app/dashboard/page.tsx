@@ -2,7 +2,6 @@ import Link from "next/link";
 import { LogOut } from "lucide-react";
 import { EmployeeCard } from "@/components/EmployeeCard";
 import { PlanBadge } from "@/components/PlanBadge";
-import { SessionRepair } from "@/components/SessionRepair";
 import { Sidebar } from "@/components/Sidebar";
 import { buildAccessState, canRunEmployee } from "@/lib/access-control";
 import { employees, type PlanName } from "@/lib/data";
@@ -60,7 +59,20 @@ export default async function DashboardPage() {
       <main className="grid bg-mist lg:grid-cols-[260px_1fr]">
         <Sidebar />
         <section className="p-4 sm:p-6 lg:p-8">
-          <SessionRepair label="Opening your dashboard..." />
+          <div className="rounded-lg border border-line bg-white p-6 shadow-sm">
+            <h1 className="text-lg font-black text-navy">Login session was not received.</h1>
+            <p className="mt-2 text-sm leading-6 text-steel">
+              LINKORNA could not read the signed login cookie on this dashboard request.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Link href="/auth/check?next=/dashboard" className="inline-flex h-11 items-center rounded-md bg-blue px-5 text-sm font-black text-white">
+                Check login session
+              </Link>
+              <Link href="/login" className="inline-flex h-11 items-center rounded-md border border-line bg-white px-5 text-sm font-black text-navy">
+                Login again
+              </Link>
+            </div>
+          </div>
         </section>
       </main>
     );

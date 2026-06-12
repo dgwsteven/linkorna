@@ -120,13 +120,15 @@ export function setLinkornaSessionCookie(response: NextResponse, session: Linkor
 }
 
 export function setSignedUserCookie(response: NextResponse, user: { id: string; email?: string | null }) {
+  const value = encodeSignedUserSession({
+    userId: user.id,
+    email: user.email ?? null,
+    expiresAt: Date.now() + 1000 * 60 * 60 * 24 * 30
+  });
+
   response.cookies.set(
     LINKORNA_USER_COOKIE,
-    encodeSignedUserSession({
-      userId: user.id,
-      email: user.email ?? null,
-      expiresAt: Date.now() + 1000 * 60 * 60 * 24 * 30
-    }),
+    value,
     {
       httpOnly: true,
       secure: true,
@@ -136,6 +138,14 @@ export function setSignedUserCookie(response: NextResponse, user: { id: string; 
       maxAge: 60 * 60 * 24 * 30
     }
   );
+
+  response.cookies.set(LINKORNA_USER_COOKIE, value, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 30
+  });
 }
 
 export function clearLinkornaSessionCookie(response: NextResponse) {

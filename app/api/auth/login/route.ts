@@ -39,7 +39,28 @@ export async function POST(request: NextRequest) {
   }
 
   const response = isForm
-    ? NextResponse.redirect(new URL(next, request.url), 303)
+    ? new NextResponse(
+        `<!doctype html>
+        <html>
+          <head>
+            <meta charset="utf-8" />
+            <meta http-equiv="refresh" content="0;url=${next.replace(/"/g, "%22")}" />
+            <title>Logging in...</title>
+          </head>
+          <body style="font-family: Arial, sans-serif; padding: 32px;">
+            <p>Login successful. Opening LINKORNA dashboard...</p>
+            <p><a href="${next.replace(/"/g, "%22")}">Continue</a></p>
+            <script>window.location.replace(${JSON.stringify(next)});</script>
+          </body>
+        </html>`,
+        {
+          status: 200,
+          headers: {
+            "content-type": "text/html; charset=utf-8",
+            "cache-control": "no-store"
+          }
+        }
+      )
     : NextResponse.json({
         ok: true,
         accessToken: data.session?.access_token ?? null,
