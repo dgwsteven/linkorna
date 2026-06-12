@@ -1,28 +1,23 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@supabase/ssr";
-import { setLinkornaSessionCookie, setSignedUserCookie } from "@/lib/linkorna-session";
+import { createClient } from "@supabase/supabase-js";
+import { setSignedUserCookie } from "@/lib/linkorna-session";
 
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({}));
   const email = typeof body.email === "string" ? body.email.trim() : "";
   const password = typeof body.password === "string" ? body.password : "";
-  const cookiesToSet: Array<{ name: string; value: string; options: Parameters<NextResponse["cookies"]["set"]>[2] }> = [];
 
   if (!email || !password) {
     return NextResponse.json({ error: "Email and password are required." }, { status: 400 });
   }
 
-  const supabase = createServerClient(
+  const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(items) {
-          cookiesToSet.push(...items);
-        }
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false
       }
     }
   );
@@ -36,18 +31,13 @@ export async function POST(request: NextRequest) {
     ok: true,
     accessToken: data.session?.access_token ?? null,
     refreshToken: data.session?.refresh_token ?? null,
-    cookieMode: "signed-domain"
+    cookieMode: "signed-only",
+    hasUser: Boolean(data.user || data.session?.user)
   });
 
-  cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
-  if (data.session?.access_token && data.session?.refresh_token) {
-    setLinkornaSessionCookie(response, {
-      accessToken: data.session.access_token,
-      refreshToken: data.session.refresh_token
-    });
-  }
-  if (data.user) {
-    setSignedUserCookie(response, data.user);
+  const user = data.user || data.session?.user;
+  if (user) {
+    setSignedUserCookie(response, user);
   }
 
   return response;
