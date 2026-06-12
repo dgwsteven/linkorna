@@ -23,9 +23,9 @@ export async function Header() {
         <div className="flex items-center gap-2">
           {user ? (
             <>
-              <Link href="/dashboard" className="flex h-10 items-center rounded-md bg-blue px-4 text-sm font-bold text-white">
+              <a href="/dashboard" className="flex h-10 items-center rounded-md bg-blue px-4 text-sm font-bold text-white">
                 Dashboard
-              </Link>
+              </a>
               <a href="/logout" className="hidden h-10 items-center gap-2 rounded-md px-3 text-sm font-bold text-graphite sm:flex">
                 <LogOut className="h-4 w-4" />
                 Logout

@@ -51,6 +51,9 @@ const usageColors: Record<string, string> = {
   meeting: "bg-slate-500"
 };
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function DashboardPage() {
   const { supabase, user } = await getLinkornaAuthContext();
 
