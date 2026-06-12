@@ -35,18 +35,19 @@ export function RegisterForm({ message }: { message?: string }) {
       return;
     }
 
-    const supabase = createClient();
-    const {
-      data: { session }
-    } = await supabase.auth.signInWithPassword({ email, password });
+    if (payload?.accessToken && payload?.refreshToken) {
+      const supabase = createClient();
+      await supabase.auth.setSession({
+        access_token: payload.accessToken,
+        refresh_token: payload.refreshToken
+      });
 
-    if (session?.access_token && session?.refresh_token) {
       await fetch("/api/auth/sync", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          accessToken: session.access_token,
-          refreshToken: session.refresh_token
+          accessToken: payload.accessToken,
+          refreshToken: payload.refreshToken
         }),
         credentials: "same-origin"
       });

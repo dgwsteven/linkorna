@@ -20,33 +20,42 @@ export function LoginForm({ message, next = "/dashboard" }: { message?: string; 
     setLoading(true);
 
     const supabase = createClient();
-    const {
-      data: { session },
-      error: loginError
-    } = await supabase.auth.signInWithPassword({ email, password });
+    await supabase.auth.signOut();
 
-    if (loginError || !session?.access_token || !session?.refresh_token) {
-      setError(loginError?.message || "Login failed.");
-      setLoading(false);
-      return;
-    }
-
-    const response = await fetch("/api/auth/sync", {
+    const response = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        accessToken: session.access_token,
-        refreshToken: session.refresh_token
-      }),
+      body: JSON.stringify({ email, password }),
       credentials: "same-origin"
     });
     const payload = await response.json().catch(() => null);
 
-    if (!response.ok) {
-      setError(payload?.error || "Login session could not be synced.");
+    if (!response.ok || !payload?.accessToken || !payload?.refreshToken) {
+      setError(payload?.error || "Login failed.");
       setLoading(false);
       return;
     }
+
+    const { error: browserSessionError } = await supabase.auth.setSession({
+      access_token: payload.accessToken,
+      refresh_token: payload.refreshToken
+    });
+
+    if (browserSessionError) {
+      setError(browserSessionError.message);
+      setLoading(false);
+      return;
+    }
+
+    await fetch("/api/auth/sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        accessToken: payload.accessToken,
+        refreshToken: payload.refreshToken
+      }),
+      credentials: "same-origin"
+    });
 
     window.location.href = next.startsWith("/") ? next : "/dashboard";
   }
