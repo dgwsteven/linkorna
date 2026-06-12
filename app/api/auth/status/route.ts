@@ -9,7 +9,7 @@ export async function GET(request: Request) {
     .filter(Boolean);
 
   if (!user) {
-    return NextResponse.json({ authenticated: false, source, cookieNames });
+    return NextResponse.json({ authenticated: false, source, host: request.headers.get("host"), cookieNames });
   }
 
   const { data: profile } = await supabase.from("profiles").select("company_name, full_name").eq("id", user.id).single();
@@ -17,6 +17,7 @@ export async function GET(request: Request) {
   return NextResponse.json({
     authenticated: true,
     source,
+    host: request.headers.get("host"),
     cookieNames,
     email: user.email,
     companyName: profile?.company_name || null,
