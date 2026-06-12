@@ -30,6 +30,10 @@ function signingSecret() {
   return secret;
 }
 
+function cookieDomain() {
+  return process.env.VERCEL_ENV === "production" ? ".linkorna.com" : undefined;
+}
+
 function encodeSession(session: LinkornaSession) {
   return Buffer.from(JSON.stringify(session), "utf8").toString("base64url");
 }
@@ -110,6 +114,7 @@ export function setLinkornaSessionCookie(response: NextResponse, session: Linkor
     secure: true,
     sameSite: "lax",
     path: "/",
+    domain: cookieDomain(),
     maxAge: 60 * 60 * 24 * 30
   });
 }
@@ -127,6 +132,7 @@ export function setSignedUserCookie(response: NextResponse, user: { id: string; 
       secure: true,
       sameSite: "lax",
       path: "/",
+      domain: cookieDomain(),
       maxAge: 60 * 60 * 24 * 30
     }
   );
@@ -138,6 +144,7 @@ export function clearLinkornaSessionCookie(response: NextResponse) {
     secure: true,
     sameSite: "lax",
     path: "/",
+    domain: cookieDomain(),
     maxAge: 0
   });
   response.cookies.set(LINKORNA_USER_COOKIE, "", {
@@ -145,6 +152,7 @@ export function clearLinkornaSessionCookie(response: NextResponse) {
     secure: true,
     sameSite: "lax",
     path: "/",
+    domain: cookieDomain(),
     maxAge: 0
   });
 }

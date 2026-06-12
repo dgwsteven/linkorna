@@ -35,7 +35,8 @@ export async function POST(request: NextRequest) {
   const response = NextResponse.json({
     ok: true,
     accessToken: data.session?.access_token ?? null,
-    refreshToken: data.session?.refresh_token ?? null
+    refreshToken: data.session?.refresh_token ?? null,
+    cookieMode: "signed-domain"
   });
 
   cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
