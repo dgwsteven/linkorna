@@ -13,6 +13,7 @@ import {
   Wand2
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { EmployeeTaskForm } from "@/components/EmployeeTaskForm";
 import { FormSubmitButton } from "@/components/FormSubmitButton";
 
@@ -21,10 +22,11 @@ const outputAudiences = ["Chinese internal team", "German client follow-up", "En
 const detailLevels = ["Executive summary", "Detailed minutes", "Action-item focused", "Client follow-up focused"];
 
 const meetingChecklist = [
+  "Audio transcription from meeting recordings",
   "Meeting summary and key decisions",
   "Action items with owners and deadlines",
-  "Client or supplier follow-up email",
-  "Downloadable meeting report"
+  "Client or supplier follow-up draft",
+  "Downloadable Word report"
 ];
 
 const diagnosisByAudience: Record<string, string[]> = {
@@ -192,6 +194,7 @@ export function MeetingWorkspace({
   selectedDetailLevel?: string;
 }) {
   const router = useRouter();
+  const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
   const audience = outputAudiences.includes(selectedAudience) ? selectedAudience : "Chinese internal team";
   const detailLevel = detailLevels.includes(selectedDetailLevel) ? selectedDetailLevel : "Executive summary";
   const diagnosis = diagnosisByAudience[audience];
@@ -280,32 +283,50 @@ export function MeetingWorkspace({
         <div className="border-b border-line p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-lg font-black text-navy">Meeting Material</h2>
-              <p className="text-sm text-steel">Upload meeting recordings or paste transcript/context to generate minutes and follow-up actions.</p>
+              <h2 className="text-lg font-black text-navy">Meeting Recording</h2>
+              <p className="text-sm text-steel">Upload the meeting audio first. The employee transcribes it, then creates minutes, decisions and actions.</p>
             </div>
             <span className="rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-black text-emerald-700">
-              Executive employee
+              Audio analysis employee
             </span>
           </div>
         </div>
 
         <div className="grid gap-5 p-5">
           <label className="grid gap-2">
-            <span className="label">Upload transcript or meeting notes</span>
-            <div className="flex min-h-28 items-center justify-center rounded-md border border-dashed border-line bg-mist p-4 text-center text-sm font-bold text-steel">
-              <UploadCloud className="mr-2 h-5 w-5" />
-              Select TXT, DOCX or readable PDF meeting transcripts
+            <span className="label">Upload meeting audio / recording</span>
+            <div className="flex min-h-32 flex-col items-center justify-center gap-2 rounded-md border border-dashed border-line bg-mist p-4 text-center text-sm font-bold text-steel">
+              <UploadCloud className="h-6 w-6" />
+              <span>Select MP3, M4A, WAV, MP4, MPEG, MPGA or WEBM recordings</span>
+              <span className="text-xs font-bold text-steel">For reliable processing, keep each file under 25MB.</span>
+              {selectedFiles.length > 0 && (
+                <div className="mt-2 grid w-full gap-2">
+                  {selectedFiles.map((fileName) => (
+                    <span key={fileName} className="truncate rounded-md border border-line bg-white px-3 py-2 text-left text-xs font-black text-navy">
+                      {fileName}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
-            <input name="meetingFiles" className="sr-only" type="file" multiple accept=".txt,.doc,.docx,.pdf" />
-            <span className="text-xs font-bold text-steel">Audio/video transcription will be added later. For now, upload or paste readable transcript text.</span>
+            <input
+              name="meetingFiles"
+              className="sr-only"
+              type="file"
+              multiple
+              accept=".mp3,.mp4,.mpeg,.mpga,.m4a,.wav,.webm,audio/*,video/*"
+              onChange={(event) => {
+                setSelectedFiles(Array.from(event.currentTarget.files ?? []).map((file) => file.name));
+              }}
+            />
           </label>
 
           <label className="grid gap-2">
-            <span className="label">Meeting transcript or rough notes</span>
+            <span className="label">Optional transcript / extra notes</span>
             <textarea
               name="meetingTranscript"
               className="field min-h-44 resize-y"
-              placeholder="Paste transcript, rough notes, chat export or meeting dialogue here. The more concrete the notes are, the better the minutes will be."
+              placeholder="Optional: paste an agenda, chat export, speaker names, partial transcript, or terms that may be hard to hear in the recording."
             />
           </label>
 

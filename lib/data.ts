@@ -38,7 +38,7 @@ export const plans = [
       "Everything in Business",
       "Meeting Recorder Employee",
       "Upload Zoom / Teams / Tencent Meeting / Feishu recordings",
-      "Generate summaries, bilingual transcripts, action items and follow-up emails"
+      "Transcribe meeting audio and generate minutes, action items and follow-up drafts"
     ],
     targets: ["Leadership teams", "Sales teams", "Procurement directors", "Multi-market operators"],
     button: "Start Executive"

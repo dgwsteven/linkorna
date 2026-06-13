@@ -14,7 +14,7 @@ const phaseCopy: Record<Exclude<EmployeeTaskPhase, "idle">, { title: string; bod
   },
   preparing: {
     title: "Preparing your material",
-    body: "Files and form details are being uploaded and converted into readable task input."
+    body: "Files and form details are being uploaded, extracted, or transcribed into readable task input."
   },
   analyzing: {
     title: "AI employee is analyzing",

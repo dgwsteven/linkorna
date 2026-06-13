@@ -1,3 +1,55 @@
+const audioExtensions = /\.(mp3|mp4|mpeg|mpga|m4a|wav|webm)$/i;
+const maxAudioUploadBytes = 25 * 1024 * 1024;
+
+function isAudioVideoFile(file: File, lowerName: string) {
+  return audioExtensions.test(lowerName) || file.type.startsWith("audio/") || file.type.startsWith("video/");
+}
+
+async function transcribeAudioFile(file: File) {
+  if (!process.env.OPENAI_API_KEY) {
+    return {
+      extractionError: "Audio transcription is not configured. Please set OPENAI_API_KEY in Vercel, then redeploy."
+    };
+  }
+
+  if (file.size > maxAudioUploadBytes) {
+    return {
+      extractionError: "Audio file is larger than 25MB. Please upload a shorter or compressed recording."
+    };
+  }
+
+  const formData = new FormData();
+  formData.append("file", file, file.name);
+  formData.append("model", process.env.LINKORNA_TRANSCRIBE_MODEL || "gpt-4o-mini-transcribe");
+  formData.append("response_format", "text");
+  formData.append(
+    "prompt",
+    "This is a business meeting recording for cross-border trade, supplier negotiation, sales, procurement, contract, logistics, ecommerce, German, English or Chinese business communication. Preserve names, dates, prices, quantities, action items and decisions."
+  );
+
+  const response = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
+    },
+    body: formData,
+    signal: AbortSignal.timeout(90000)
+  });
+
+  const text = await response.text();
+
+  if (!response.ok) {
+    return {
+      extractionError: `Audio transcription failed: ${text.slice(0, 300)}`
+    };
+  }
+
+  return {
+    extractedText: text.trim().slice(0, 60000),
+    extractionMode: "audio-transcription"
+  };
+}
+
 export async function extractFileValue(file: File) {
   const base = {
     name: file.name,
@@ -6,17 +58,15 @@ export async function extractFileValue(file: File) {
   };
 
   try {
-      const lowerName = file.name.toLowerCase();
-      const buffer = Buffer.from(await file.arrayBuffer());
+    const lowerName = file.name.toLowerCase();
 
-      if (/\.(mp3|mp4|m4a|wav|mov|avi|webm)$/i.test(lowerName) || file.type.startsWith("audio/") || file.type.startsWith("video/")) {
-        return {
-          ...base,
-          extractionError: "Audio/video transcription is not enabled yet. Please paste or upload a readable meeting transcript."
-        };
-      }
+    if (isAudioVideoFile(file, lowerName)) {
+      return { ...base, ...(await transcribeAudioFile(file)) };
+    }
 
-      if (lowerName.endsWith(".docx")) {
+    const buffer = Buffer.from(await file.arrayBuffer());
+
+    if (lowerName.endsWith(".docx")) {
       const mammoth = await import("mammoth");
       const result = await mammoth.extractRawText({ buffer });
       return { ...base, extractedText: result.value.slice(0, 30000) };
@@ -36,7 +86,7 @@ export async function extractFileValue(file: File) {
     console.error("File extraction failed", error);
     return {
       ...base,
-      extractionError: "Could not extract file text. Ask the user to paste the relevant contract text."
+      extractionError: "Could not extract file content. Ask the user to upload a supported audio, DOCX, TXT or readable PDF file, or paste the relevant text."
     };
   }
 }
