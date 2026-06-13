@@ -73,22 +73,15 @@ export default async function BillingCheckoutPage({ searchParams }: { searchPara
                 <WalletCards className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="text-xl font-black text-navy">Alipay / WeChat Pay / Card</h2>
+                <h2 className="text-xl font-black text-navy">Alipay / WeChat Pay</h2>
                 <p className="mt-2 text-sm leading-6 text-steel">
-                  Best for Chinese customers. Stripe will offer Alipay and WeChat Pay when available, with card payment as a fallback for this one-month access pass.
+                  Best for Chinese customers. This opens Stripe Checkout with Chinese wallet payment options.
                 </p>
               </div>
             </div>
-            <div className="mt-5 flex flex-wrap gap-2">
-              {["Alipay enabled", "WeChat Pay enabled", "Card fallback"].map((item) => (
-                <span key={item} className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">
-                  {item}
-                </span>
-              ))}
-            </div>
             <div className="mt-6">
               <CheckoutButton plan={plan as PlanName} channel="china-wallet">
-                Continue to payment options
+                Continue with Alipay / WeChat Pay
               </CheckoutButton>
             </div>
           </section>

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import Stripe from "stripe";
 import { billingPlans, isCheckoutChannel, isPlanName } from "@/lib/billing";
 import { createRequestClient } from "@/lib/supabase/request";
 import { getStripe } from "@/lib/stripe";
@@ -58,23 +59,38 @@ export async function POST(request: Request) {
     ]
   };
 
-  const session =
-    channel === "subscription"
-      ? await stripe.checkout.sessions.create({
-          ...common,
-          mode: "subscription",
-          subscription_data: {
-            metadata: common.metadata
-          }
-        })
-      : await stripe.checkout.sessions.create({
-          ...common,
-          mode: "payment",
-          payment_method_types: ["alipay", "wechat_pay", "card"],
-          payment_intent_data: {
-            metadata: common.metadata
-          }
-        });
+  try {
+    const session =
+      channel === "subscription"
+        ? await stripe.checkout.sessions.create({
+            ...common,
+            mode: "subscription",
+            subscription_data: {
+              metadata: common.metadata
+            }
+          })
+        : await stripe.checkout.sessions.create({
+            ...common,
+            mode: "payment",
+            payment_method_types: ["alipay", "wechat_pay"],
+            payment_method_options: {
+              wechat_pay: {
+                client: "web"
+              }
+            },
+            payment_intent_data: {
+              metadata: common.metadata
+            }
+          });
 
-  return NextResponse.json({ url: session.url });
+    return NextResponse.json({ url: session.url });
+  } catch (error) {
+    const message = error instanceof Stripe.errors.StripeError ? error.message : "Checkout could not be started.";
+    console.error("Stripe checkout session failed", {
+      channel,
+      plan,
+      message
+    });
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
 }
