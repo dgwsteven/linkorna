@@ -63,13 +63,13 @@ export default async function DashboardPage() {
         <Sidebar />
         <section className="p-4 sm:p-6 lg:p-8">
           <div className="rounded-lg border border-line bg-white p-6 shadow-sm">
-            <h1 className="text-lg font-black text-navy">Login session was not received.</h1>
+            <h1 className="text-lg font-black text-navy">Please login again.</h1>
             <p className="mt-2 text-sm leading-6 text-steel">
-              LINKORNA could not read the signed login cookie on this dashboard request.
+              LINKORNA could not confirm a secure browser login for this dashboard request.
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               <Link href="/auth/check?next=/dashboard" className="inline-flex h-11 items-center rounded-md bg-blue px-5 text-sm font-black text-white">
-                Check login session
+                Check login
               </Link>
               <Link href="/login" className="inline-flex h-11 items-center rounded-md border border-line bg-white px-5 text-sm font-black text-navy">
                 Login again

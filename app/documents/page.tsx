@@ -40,13 +40,13 @@ export default async function DocumentsPage() {
         <Sidebar />
         <section className="p-4 sm:p-6 lg:p-8">
           <div className="rounded-lg border border-line bg-white p-6 shadow-sm">
-            <h1 className="text-lg font-black text-navy">Login session was not received.</h1>
+            <h1 className="text-lg font-black text-navy">Please login again.</h1>
             <p className="mt-2 text-sm leading-6 text-steel">
-              LINKORNA could not read the secure login cookie on this request.
+              LINKORNA could not confirm a secure browser login for this document library request.
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               <Link href="/auth/check?next=/documents" className="inline-flex h-11 items-center rounded-md bg-blue px-5 text-sm font-black text-white">
-                Check login session
+                Check login
               </Link>
               <Link href="/login?next=/documents" className="inline-flex h-11 items-center rounded-md border border-line bg-white px-5 text-sm font-black text-navy">
                 Login again
@@ -115,7 +115,7 @@ export default async function DocumentsPage() {
             </div>
             <div className="flex h-10 items-center gap-2 rounded-md border border-line bg-mist px-3 text-sm font-bold text-steel">
               <Search className="h-4 w-4" />
-              Search and filters coming next
+              Latest generated documents
             </div>
           </div>
 

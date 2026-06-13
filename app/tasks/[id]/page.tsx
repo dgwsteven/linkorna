@@ -44,13 +44,13 @@ export default async function TaskResultPage({ params }: { params: Promise<{ id:
         <Header />
         <section className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
           <div className="rounded-lg border border-line bg-white p-6 shadow-sm">
-            <h1 className="text-lg font-black text-navy">Login session was not received.</h1>
+            <h1 className="text-lg font-black text-navy">Please login again.</h1>
             <p className="mt-2 text-sm leading-6 text-steel">
-              LINKORNA could not read the secure login cookie on this task result request.
+              LINKORNA could not confirm a secure browser login for this task result request.
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               <a href={`/auth/check?next=/tasks/${id}`} className="inline-flex h-11 items-center rounded-md bg-blue px-5 text-sm font-black text-white">
-                Check login session
+                Check login
               </a>
               <a href={`/login?next=/tasks/${id}`} className="inline-flex h-11 items-center rounded-md border border-line bg-white px-5 text-sm font-black text-navy">
                 Login again
