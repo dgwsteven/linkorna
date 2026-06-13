@@ -26,10 +26,12 @@ export async function Header() {
               <a href="/dashboard" className="flex h-10 items-center rounded-md bg-blue px-4 text-sm font-bold text-white">
                 Dashboard
               </a>
-              <a href="/logout" className="hidden h-10 items-center gap-2 rounded-md px-3 text-sm font-bold text-graphite sm:flex">
-                <LogOut className="h-4 w-4" />
-                Logout
-              </a>
+              <form action="/logout" method="post" className="hidden sm:block">
+                <button type="submit" className="flex h-10 items-center gap-2 rounded-md px-3 text-sm font-bold text-graphite">
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </button>
+              </form>
             </>
           ) : (
             <>

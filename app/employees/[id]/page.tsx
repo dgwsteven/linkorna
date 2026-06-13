@@ -7,11 +7,9 @@ import { ContractWorkspace } from "@/components/ContractWorkspace";
 import { GermanEmailWorkspace } from "@/components/GermanEmailWorkspace";
 import { ListingWorkspace } from "@/components/ListingWorkspace";
 import { MeetingWorkspace } from "@/components/MeetingWorkspace";
-import { OutputPanel } from "@/components/OutputPanel";
 import { PlanBadge } from "@/components/PlanBadge";
 import { SupplierWorkspace } from "@/components/SupplierWorkspace";
-import { TaskForm } from "@/components/TaskForm";
-import { employeeForms, employees } from "@/lib/data";
+import { employees } from "@/lib/data";
 
 export function generateStaticParams() {
   return employees.map((employee) => ({ id: employee.id }));
@@ -27,9 +25,8 @@ export default async function EmployeePage({
   const { id } = await params;
   const { audience, language, marketplace, positioning, goal, detailLevel } = await searchParams;
   const employee = employees.find((item) => item.id === id);
-  const form = employeeForms[id];
 
-  if (!employee || !form) notFound();
+  if (!employee) notFound();
 
   const Icon = employee.icon;
 
@@ -52,12 +49,9 @@ export default async function EmployeePage({
                   <h1 className="text-3xl font-black text-navy">{employee.name}</h1>
                   <PlanBadge plan={employee.plan} />
                 </div>
-                <p className="mt-2 max-w-3xl text-steel">{form.about}</p>
+                <p className="mt-2 max-w-3xl text-steel">{employee.example}</p>
               </div>
             </div>
-            <Link href="/tasks/demo-001" className="rounded-md border border-line bg-white px-4 py-2 text-sm font-black text-navy">
-              View Sample Result
-            </Link>
           </div>
         </div>
 
@@ -74,10 +68,7 @@ export default async function EmployeePage({
         ) : id === "meeting" ? (
           <MeetingWorkspace selectedAudience={audience} selectedDetailLevel={detailLevel} />
         ) : (
-          <div className="mt-6 grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-            <TaskForm fields={form.fields} />
-            <OutputPanel items={form.mock} />
-          </div>
+          notFound()
         )}
       </section>
     </main>

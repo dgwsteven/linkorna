@@ -189,10 +189,12 @@ export default async function DashboardPage() {
                 </div>
               ) : null}
             </div>
-            <Link href="/logout" className="inline-flex h-11 items-center gap-2 rounded-md border border-line bg-white px-4 text-sm font-black text-navy shadow-sm">
-              <LogOut className="h-4 w-4" />
-              Logout
-            </Link>
+            <form action="/logout" method="post">
+              <button type="submit" className="inline-flex h-11 items-center gap-2 rounded-md border border-line bg-white px-4 text-sm font-black text-navy shadow-sm">
+                <LogOut className="h-4 w-4" />
+                Logout
+              </button>
+            </form>
           </div>
         </div>
 

@@ -10,6 +10,7 @@ type TaskRecord = {
   title: string;
   status: string;
   employee_id: string;
+  workspace_id: string;
   input: Record<string, unknown> | null;
   output: GeneratedTaskOutput | null;
   created_at: string;
@@ -61,7 +62,19 @@ export default async function TaskResultPage({ params }: { params: Promise<{ id:
     );
   }
 
-  const { data: task } = await supabase.from("tasks").select("*").eq("id", id).single<TaskRecord>();
+  const { data: profile } = await supabase.from("profiles").select("workspace_id").eq("id", user.id).single();
+  const workspaceId = profile?.workspace_id;
+
+  if (!workspaceId) {
+    notFound();
+  }
+
+  const { data: task } = await supabase
+    .from("tasks")
+    .select("*")
+    .eq("id", id)
+    .eq("workspace_id", workspaceId)
+    .single<TaskRecord>();
 
   if (!task) {
     notFound();
