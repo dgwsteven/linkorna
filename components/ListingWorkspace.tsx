@@ -220,10 +220,6 @@ const outputByMarketplace: Record<string, { label: string; body: string }[]> = {
     {
       label: "Buyer FAQ",
       body: "Passt der Staender fuer 15-Zoll-Laptops? Ja, er ist fuer viele gaengige Laptopgroessen bis 15.6 Zoll geeignet."
-    },
-    {
-      label: "Listing improvement notes",
-      body: "Add exact dimensions, package contents, warranty information and shipping time before publishing."
     }
   ],
   "Kaufland.de": [
@@ -243,10 +239,6 @@ const outputByMarketplace: Record<string, { label: string; body: string }[]> = {
     {
       label: "Specification block",
       body: "Material, Farbe, kompatible Laptopgroesse, Gewicht, Lieferumfang, Verpackungsmasse und Pflegehinweise."
-    },
-    {
-      label: "Listing improvement notes",
-      body: "Include return policy, delivery time, compatibility range and product images showing folding and use angle."
     }
   ],
   Etsy: [
@@ -266,10 +258,6 @@ const outputByMarketplace: Record<string, { label: string; body: string }[]> = {
     {
       label: "Tags and keywords",
       body: "laptop stand, desk gift, home office, aluminum riser, minimalist desk, work from home, office accessory."
-    },
-    {
-      label: "Listing improvement notes",
-      body: "Add exact size, gift packaging option, care notes and lifestyle photos for stronger Etsy conversion."
     }
   ],
   Zalando: [
@@ -289,10 +277,6 @@ const outputByMarketplace: Record<string, { label: string; body: string }[]> = {
     {
       label: "Compliance notes",
       body: "Avoid unsupported sustainability, ergonomic or health claims unless documents are available."
-    },
-    {
-      label: "Listing improvement notes",
-      body: "For Zalando, focus on clean attribute data, brand-safe tone and strong product photography."
     }
   ],
   "TikTok Shop": [
@@ -348,10 +332,6 @@ const outputByMarketplace: Record<string, { label: string; body: string }[]> = {
     {
       label: "Specification block",
       body: "Material, kolor, rozmiar, kompatybilnosc, zawartosc zestawu, waga i informacje o dostawie."
-    },
-    {
-      label: "Listing improvement notes",
-      body: "Add Polish shipping, return and warranty details before publishing."
     }
   ],
   Cdiscount: [
@@ -371,10 +351,6 @@ const outputByMarketplace: Record<string, { label: string; body: string }[]> = {
     {
       label: "Specification block",
       body: "Dimensions, poids, couleur, materiau, compatibilite, contenu du colis et conditions de livraison."
-    },
-    {
-      label: "Listing improvement notes",
-      body: "Add French warranty, delivery and return information, plus compatibility images."
     }
   ],
   Other: [
@@ -445,8 +421,7 @@ function localizedOutput(marketplace: string, language: string, positioning: str
         body:
           "Dieser Laptopstaender hilft, den Arbeitsplatz sauberer und praktischer zu organisieren. Die faltbare Konstruktion ist leicht zu transportieren und fuer viele gaengige Notebookgroessen geeignet."
       },
-      { label: "Keywords and FAQ", body: "laptop staender, notebook halter, ergonomisch, faltbar; FAQ zu Kompatibilitaet, Groesse, Material und Lieferumfang." },
-      { label: "Listing improvement notes", body: "Vor Veroeffentlichung genaue Masse, Gewicht, Lieferumfang, Garantie und Bildhinweise ergaenzen." }
+      { label: "Keywords and FAQ", body: "laptop staender, notebook halter, ergonomisch, faltbar; FAQ zu Kompatibilitaet, Groesse, Material und Lieferumfang." }
     ];
   }
 
@@ -467,11 +442,9 @@ function localizedOutput(marketplace: string, language: string, positioning: str
         body:
           "这款笔记本支架适合需要整理桌面、改善屏幕角度和提高日常办公便利性的用户。轻便可折叠，适合多种常见笔记本尺寸。"
       },
-      { label: "Keywords and FAQ", body: "笔记本支架、电脑支架、铝合金支架、办公桌配件；FAQ 包括适配尺寸、材质、包装内容和使用场景。" },
-      { label: "Listing improvement notes", body: "发布前补充具体尺寸、重量、包装清单、质保信息和产品图片角度。" }
+      { label: "Keywords and FAQ", body: "笔记本支架、电脑支架、铝合金支架、办公桌配件；FAQ 包括适配尺寸、材质、包装内容和使用场景。" }
     ];
   }
-
   return [
     { label: "Listing strategy", body: strategy.English },
     {
@@ -488,8 +461,7 @@ function localizedOutput(marketplace: string, language: string, positioning: str
       body:
         "This foldable laptop stand is designed for users who want a cleaner and more practical desk setup. It is lightweight, easy to carry and compatible with many common laptop sizes."
     },
-    { label: "Keywords and FAQ", body: "laptop stand, notebook riser, aluminum holder, foldable desk accessory; FAQ should cover compatibility, size, material and package contents." },
-    { label: "Listing improvement notes", body: "Before publishing, add exact dimensions, weight, package contents, warranty information and image requirements." }
+    { label: "Keywords and FAQ", body: "laptop stand, notebook riser, aluminum holder, foldable desk accessory; FAQ should cover compatibility, size, material and package contents." }
   ];
 }
 
@@ -515,7 +487,6 @@ export function ListingWorkspace({
           ...platformOutput
         ]
       : localizedOutput(marketplace, language, positioning);
-  const finalOutputSections = outputSections.filter((section) => section.label !== "Listing improvement notes");
 
   const pushListingUrl = (next: { marketplace?: string; language?: string; positioning?: string }) => {
     const params = new URLSearchParams({
@@ -750,13 +721,13 @@ export function ListingWorkspace({
             <div className="flex items-center justify-between gap-3">
               <div>
                 <h3 className="font-black text-navy">Output Preview</h3>
-              <p className="text-sm text-steel">Marketplace-ready listing package with copy, keywords, specs and improvement notes.</p>
+              <p className="text-sm text-steel">Marketplace-ready listing package with copy, keywords, specs and FAQ.</p>
               </div>
               <Sparkles className="h-5 w-5 text-accent" />
             </div>
           </div>
           <div className="space-y-3 p-4">
-            {finalOutputSections.map((section) => (
+            {outputSections.map((section) => (
               <div key={section.label} className="rounded-md bg-mist p-3">
                 <div className="flex items-center gap-2 text-sm font-black text-navy">
                   {section.label.includes("keyword") ? <Search className="h-4 w-4" /> : section.label.includes("Bullet") || section.label.includes("Feature") || section.label.includes("Selling") ? <ListChecks className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
