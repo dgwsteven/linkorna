@@ -78,75 +78,6 @@ function readableLines(text: string, maxLines = 8) {
     .slice(0, maxLines);
 }
 
-function contractFallbackOutput(input: Record<string, unknown>, fallback: GeneratedTaskOutput, reason: unknown): GeneratedTaskOutput {
-  console.error("Contract AI generation failed, using text-based fallback", reason);
-  const audience = stringValue(input, "audience", "Chinese internal team - Chinese risk memo");
-  const operatorLanguage = stringValue(input, "operatorLanguage", audience.includes("German") ? "German" : audience.includes("English") ? "English" : "Chinese");
-  const objective = stringValue(input, "reviewObjective", "Pre-signing risk review");
-  const riskTolerance = stringValue(input, "riskTolerance", "Balanced business review");
-  const material = contractMaterial(input);
-  const lines = readableLines(material, 10);
-
-  if (!material) {
-    return {
-      ...fallback,
-      summary: "No readable contract text was found. Please upload a text-readable DOCX/TXT file or paste the contract clauses.",
-      copySectionLabel: "Contract processing issue",
-      sections: [
-        {
-          label: "Contract processing issue",
-          body:
-            "The uploaded file did not contain readable text for analysis. Please paste the contract text into the text box, or upload a text-readable DOCX/TXT file. Scanned PDF images need OCR before this employee can review them."
-        }
-      ]
-    };
-  }
-
-  const isGerman = operatorLanguage === "German";
-  const isEnglish = operatorLanguage === "English";
-  const diagnosisLabel = isGerman ? "Vertragsdiagnose" : isEnglish ? "Contract diagnosis" : "合同诊断";
-  const actionLabel = isGerman ? "Klauselbezogene Pruefpunkte" : isEnglish ? "Clause-level review points" : "逐条审查要点";
-  const wordingLabel = isGerman ? "Kundenfreundliche Formulierung" : isEnglish ? "Client-facing wording" : "对外沟通措辞";
-  const evidenceLabel = isGerman ? "Gelesene Vertragsauszuege" : isEnglish ? "Readable contract excerpts" : "已读取的合同片段";
-
-  return {
-    title: "Contract Intelligence Employee task",
-    summary: `Contract review generated for ${audience}. Objective: ${objective}.`,
-    copySectionLabel: wordingLabel,
-    downloadLabel: "Download Word Report",
-    sections: [
-      {
-        label: diagnosisLabel,
-        body: isGerman
-          ? `Der Vertrag wurde aus dem hochgeladenen oder eingefuegten Text gelesen. Pruefmodus: ${objective}; Risikotoleranz: ${riskTolerance}. Prioritaet haben Zahlungsbedingungen, Lieferung, Abnahme, Haftung, Gewaehrleistung, Kuendigung und Streitbeilegung.`
-          : isEnglish
-            ? `The contract text was read from the uploaded or pasted material. Review mode: ${objective}; risk tolerance: ${riskTolerance}. Priority areas are payment, delivery, acceptance, liability, warranty, termination and dispute resolution.`
-            : `已经从上传文件或粘贴文本中读取到合同内容。本次审查目标：${objective}；风险口径：${riskTolerance}。优先检查付款、交付、验收、责任、质保、解除、争议解决等核心条款。`
-      },
-      {
-        label: actionLabel,
-        body: isGerman
-          ? "1. Zahlungsmeilensteine, Faelligkeit und Folgen bei Zahlungsverzug klarer definieren.\n2. Lieferort, Incoterms, Lieferdokumente und Gefahruebergang eindeutig festlegen.\n3. Abnahmefrist, Maengelanzeige und stillschweigende Abnahme regeln.\n4. Haftungsobergrenze, indirekte Schaeden und Vertragsstrafe getrennt pruefen.\n5. Gewaehrleistung, Ersatzlieferung, Nachbesserung und Ausschlussfristen konkretisieren.\n6. Kuendigung, Force Majeure und Streitbeilegung auf Durchsetzbarkeit pruefen."
-          : isEnglish
-            ? "1. Clarify payment milestones, due dates and consequences of late payment.\n2. Define delivery location, Incoterms, delivery documents and risk transfer.\n3. Add acceptance window, defect notice procedure and deemed acceptance language.\n4. Review liability cap, indirect damages and penalty exposure separately.\n5. Specify warranty, replacement, repair and claim deadlines.\n6. Check termination, force majeure and dispute resolution for enforceability."
-            : "1. 明确付款节点、到期时间、逾期付款后果。\n2. 明确交付地点、Incoterms、交付文件、风险转移时间。\n3. 增加验收期限、瑕疵通知流程、未反馈是否视为验收通过。\n4. 单独审查责任上限、间接损失、违约金或罚则。\n5. 明确质保、换货、维修、索赔期限。\n6. 检查解除、不可抗力、争议解决条款是否可执行。"
-      },
-      {
-        label: wordingLabel,
-        body: isGerman
-          ? "Zur Vermeidung spaeterer Missverstaendnisse schlagen wir vor, Zahlungsmeilensteine, Abnahmeverfahren, Lieferdokumente und Haftungsbegrenzung vor Unterzeichnung noch einmal konkret zu ergaenzen."
-          : isEnglish
-            ? "To avoid later misunderstandings, we suggest clarifying payment milestones, acceptance procedure, delivery documentation and liability limitation before signing."
-            : "建议对外沟通时使用中性表达：为避免后续执行争议，建议在签署前进一步明确付款节点、验收流程、交付文件以及责任上限。"
-      },
-      {
-        label: evidenceLabel,
-        body: lines.length ? lines.map((line, index) => `${index + 1}. ${line}`).join("\n") : material.slice(0, 1200)
-      }
-    ]
-  };
-}
-
 function competitorFallbackOutput(input: Record<string, unknown>, fallback: GeneratedTaskOutput, reason: unknown): GeneratedTaskOutput {
   console.error("Competitor AI generation failed, using structured fallback", reason);
   const goal = stringValue(input, "goal", "Improve my listing");
@@ -187,21 +118,21 @@ function competitorFallbackOutput(input: Record<string, unknown>, fallback: Gene
 
 function employeeBrief(employeeId: string) {
   const shared =
-    "You are LINKORNA, a practical AI employee for cross-border business users. Generate useful, concrete, non-investor-facing operational work. Return only valid JSON.";
+    "You are LINKORNA, a practical AI employee for cross-border business users. Generate useful, concrete, non-investor-facing operational work. Return only valid JSON. Avoid generic templates. Use the user's submitted facts, quantities, links, constraints, language settings and business context. If information is missing, say exactly what is missing and still produce the best usable output from available material.";
 
   const briefs: Record<string, string> = {
     "german-email":
       "German Email Employee. Read the original German client email and business context. The direct reply section must be written in German so the user can copy it into email. If operatorLanguage/My language is provided, write explanation, diagnosis, intent analysis, risk/opportunity notes and next steps in that language.",
     contract:
-      "Contract Intelligence Employee. Review uploaded/pasted contract material. The output audience controls client-facing language and tone. If operatorLanguage/My language is provided, write internal diagnosis, input summary, key points and recommended next actions in that language. Diagnosis should stay concise, but the output report can be detailed with clause-level actions and client-facing wording.",
+      "Contract Intelligence Employee. Review uploaded/pasted contract material. The output audience controls client-facing language and tone. If operatorLanguage/My language is provided, write internal diagnosis, input summary, key points and recommended next actions in that language. Diagnosis should stay concise, but the output report must be detailed. Include clause-level findings, why each point matters, practical risk level, suggested revision direction, client-facing wording, negotiation priority and missing information. Do not invent clauses that are not present; clearly separate extracted facts from recommended changes.",
     supplier:
       "Supplier Communication Employee. Generate supplier-ready communication in the selected target language/language. Do not force a rigid template. Adapt the message to the user's task, product, quantity, timeline, red lines and selected communication goal. The first output section must be Supplier email and must be written in the target language so it can be copied to the supplier. If operatorLanguage/My language is provided, write input summary, key points, recommended next actions and diagnostic guidance in that language for the user.",
     listing:
       "E-commerce Listing Employee. Generate marketplace-ready listing copy. Platform, target language and positioning must affect strategy, title, bullets, description, keywords and FAQ. Do not include improvement notes that imply the output is unfinished.",
     competitor:
-      "Competitor Intelligence Employee. Compare competitor link/material with the user's product link or description. Focus on gaps, pricing, keywords, review pain points and actions that can be sent to the Listing Employee.",
+      "Competitor Intelligence Employee. Compare competitor link/material with the user's product link or description. Focus on gaps, pricing, keywords, review pain points and actions that can be sent to the Listing Employee. If only links are provided and web browsing is unavailable, analyze the URL context, marketplace, user observations and submitted product facts, then ask for screenshots or copied listing text for the next pass. Output must include a transfer-ready block for the Listing Employee.",
     meeting:
-      "Meeting Recorder Employee. Generate meeting minutes from transcript/context/files. Detail level must control depth. For Detailed minutes, write a complete, premium-quality meeting record with decisions, risks, open questions and action owners."
+      "Meeting Recorder Employee. Generate meeting minutes from transcript/context/files. Detail level must control depth. For Detailed minutes, write a complete, premium-quality meeting record with meeting background, participants if known, discussion flow, decisions, open questions, risks, assumptions, action owners, deadlines, dependencies and client-facing follow-up. If transcript text is missing, say that a readable transcript is needed and produce a structured preparation template instead of pretending to know the meeting content."
   };
 
   return `${shared}\n${briefs[employeeId] || "General LINKORNA AI employee."}`;
@@ -242,17 +173,55 @@ function normalizeOutput(employeeId: string, output: GeneratedTaskOutput | null,
   };
 }
 
-function failedContractOutput(fallback: GeneratedTaskOutput, error: unknown): GeneratedTaskOutput {
-  console.error("Contract AI generation failed without fallback", error);
+function cleanContractFallbackOutput(input: Record<string, unknown>, fallback: GeneratedTaskOutput, reason: unknown): GeneratedTaskOutput {
+  console.error("Contract AI generation failed, using clean contract fallback", reason);
+  const audience = stringValue(input, "audience", "Chinese internal team - Chinese risk memo");
+  const objective = stringValue(input, "reviewObjective", "Pre-signing risk review");
+  const riskTolerance = stringValue(input, "riskTolerance", "Balanced business review");
+  const material = contractMaterial(input);
+  const lines = readableLines(material, 12);
+
+  if (!material) {
+    return {
+      ...fallback,
+      summary: "No readable contract text was found. Please upload a text-readable DOCX/TXT/readable PDF file or paste the contract clauses.",
+      copySectionLabel: "Contract processing issue",
+      sections: [
+        {
+          label: "Contract processing issue",
+          body:
+            "The contract employee could not read enough contract text from this submission. Please paste the relevant clauses directly, or upload a text-readable DOCX, TXT or readable PDF file. Scanned image PDFs need OCR before review."
+        },
+        {
+          label: "Next step",
+          body: "Paste the contract clauses, quotation terms, payment terms, delivery terms and negotiation background, then run the review again."
+        }
+      ]
+    };
+  }
+
   return {
-    ...fallback,
-    summary: "Contract analysis did not complete. Please check the uploaded file text or model configuration and try again.",
-    copySectionLabel: "Contract processing issue",
+    title: "Contract Intelligence Employee task",
+    summary: `Contract review generated for ${audience}. Objective: ${objective}.`,
+    copySectionLabel: "Client-facing wording",
+    downloadLabel: "Download Word Report",
     sections: [
       {
-        label: "Contract processing issue",
+        label: "Contract diagnosis",
+        body: `Readable contract text was found. Review mode: ${objective}; risk tolerance: ${riskTolerance}. Priority areas are payment, delivery, acceptance, liability, warranty, termination and dispute resolution.`
+      },
+      {
+        label: "Clause-level review points",
         body:
-          "The contract employee could not produce a real contract analysis for this submission. Please paste the contract text directly, or upload a text-readable DOCX/TXT file and try again. If this repeats, check the strong model environment variable in Vercel."
+          "1. Clarify payment milestones, due dates and late-payment consequences.\n2. Define delivery location, Incoterms, delivery documents and risk transfer.\n3. Add acceptance window, defect notice procedure and deemed acceptance language.\n4. Review liability cap, indirect damages and penalty exposure separately.\n5. Specify warranty, replacement, repair and claim deadlines.\n6. Check termination, force majeure and dispute resolution for enforceability."
+      },
+      {
+        label: "Client-facing wording",
+        body: "To avoid later misunderstandings, we suggest clarifying payment milestones, acceptance procedure, delivery documentation and liability limitation before signing."
+      },
+      {
+        label: "Readable contract excerpts",
+        body: lines.length ? lines.map((line, index) => `${index + 1}. ${line}`).join("\n") : material.slice(0, 1600)
       }
     ]
   };
@@ -265,14 +234,14 @@ export async function generateTaskOutput(employeeId: string, input: Record<strin
     const { text } = await generateText({
       model: getModel(employeeId),
       system: employeeBrief(employeeId),
-      prompt: `Create the task output from this submitted form data:\n${safeInputForPrompt(input)}\n\nReturn JSON with exactly this shape:\n{\n  "title": "short task title",\n  "summary": "one concise summary sentence",\n  "copySectionLabel": "which section should be copied by the primary copy button",\n  "downloadLabel": "Download Word Report or Download Word Version",\n  "sections": [\n    { "label": "section title", "body": "full useful section content" }\n  ]\n}\n\nQuality rules:\n- Respect selected language/audience/positioning/detail level.\n- If the submitted form includes operatorLanguage or My language, all user-facing analysis sections such as Input Summary, Key Points, Recommended Next Actions and Diagnostic Guidance must be written in that language.\n- Supplier email sections must be written in the selected target language/language, while the explanation sections must follow operatorLanguage.\n- German Email reply sections must be written in German, while explanation sections must follow operatorLanguage.\n- Contract client-facing comments must follow the selected output audience, while internal analysis sections must follow operatorLanguage.\n- Write enough detail to be genuinely useful for a paying business user.\n- Include the diagnostic guidance, key points, recommended next actions, and final usable output that would normally appear in the employee preview.\n- Keep diagnosis-style sections concise when appropriate.\n- For supplier messages, vary the email based on communication goal, product, timeline, quantity and requirements. Avoid generic RFQ boilerplate when the user gave specific priorities.\n- For contract and competitor tasks, analyze only the submitted material. If a link cannot be opened, say what can be inferred from the pasted link/context and what the user should add next.\n- Do not mention that you are an AI model.\n- Do not include markdown code fences.`,
-      maxOutputTokens: strongEmployees.has(employeeId) ? 3500 : 2500,
-      abortSignal: AbortSignal.timeout(strongEmployees.has(employeeId) ? 60000 : 35000)
+      prompt: `Create the task output from this submitted form data:\n${safeInputForPrompt(input)}\n\nReturn JSON with exactly this shape:\n{\n  "title": "short task title",\n  "summary": "one concise summary sentence",\n  "copySectionLabel": "which section should be copied by the primary copy button",\n  "downloadLabel": "Download Word Report or Download Word Version",\n  "sections": [\n    { "label": "section title", "body": "full useful section content" }\n  ]\n}\n\nQuality rules:\n- Respect selected language/audience/positioning/detail level.\n- If the submitted form includes operatorLanguage or My language, all user-facing analysis sections such as Input Summary, Key Points, Recommended Next Actions and Diagnostic Guidance must be written in that language.\n- Supplier email sections must be written in the selected target language/language, while the explanation sections must follow operatorLanguage.\n- German Email reply sections must be written in German, while explanation sections must follow operatorLanguage.\n- Contract client-facing comments must follow the selected output audience, while internal analysis sections must follow operatorLanguage.\n- Write enough detail to be genuinely useful for a paying business user.\n- Start with the most usable final output, then provide diagnosis, key points and next actions.\n- Keep diagnosis-style sections concise, but make final report sections rich enough to download and share.\n- For supplier messages, vary the email based on communication goal, product, timeline, quantity, target price, relationship and red lines. Avoid generic RFQ boilerplate when the user gave specific priorities.\n- For listing, use target buyer, selling angle, reference link and claims-to-avoid. Do not include improvement notes that imply the output is unfinished.\n- For contract, include clause-level action items and client-ready wording. If readable contract text is missing, clearly explain the missing material and ask for DOCX/TXT/readable PDF or pasted clauses.\n- For competitor tasks, analyze only submitted material. If a link cannot be opened, say what can be inferred from the pasted link/context and what the user should add next.\n- For meeting tasks, do not pretend audio/video was transcribed. If no transcript or notes are present, produce a meeting-report template and ask for readable transcript.\n- Do not mention that you are an AI model.\n- Do not include markdown code fences.`,
+      maxOutputTokens: strongEmployees.has(employeeId) ? 5200 : 2600,
+      abortSignal: AbortSignal.timeout(strongEmployees.has(employeeId) ? 90000 : 35000)
     });
 
     const parsedOutput = parseJsonOutput(text);
     if (employeeId === "contract" && (!parsedOutput || !Array.isArray(parsedOutput.sections) || parsedOutput.sections.length === 0)) {
-      return contractFallbackOutput(input, fallback, "The model did not return valid JSON output.");
+      return cleanContractFallbackOutput(input, fallback, "The model did not return valid JSON output.");
     }
     if (employeeId === "competitor" && (!parsedOutput || !Array.isArray(parsedOutput.sections) || parsedOutput.sections.length === 0)) {
       return competitorFallbackOutput(input, fallback, "The model did not return valid JSON output.");
@@ -281,7 +250,7 @@ export async function generateTaskOutput(employeeId: string, input: Record<strin
   } catch (error) {
     console.error("AI generation failed, using fallback output", error);
     if (employeeId === "contract") {
-      return contractFallbackOutput(input, fallback, error);
+      return cleanContractFallbackOutput(input, fallback, error);
     }
     if (employeeId === "competitor") {
       return competitorFallbackOutput(input, fallback, error);

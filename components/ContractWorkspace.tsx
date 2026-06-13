@@ -424,14 +424,8 @@ export function ContractWorkspace({ selectedAudience = outputAudiences[0] }: { s
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line p-5">
-          <div className="text-sm font-bold text-steel">Estimated output: internal memo, client comments, clause checklist, negotiation wording</div>
-          <div className="flex flex-wrap gap-3">
-            <button type="button" className="h-11 rounded-md border border-line bg-white px-5 text-sm font-black text-navy">
-              Save Draft
-            </button>
-            <FormSubmitButton idleLabel="Review Contract" pendingLabel="Contract Intelligence Employee is working..." />
-          </div>
+        <div className="flex justify-end border-t border-line p-5">
+          <FormSubmitButton idleLabel="Review Contract" pendingLabel="Contract Intelligence Employee is working..." />
         </div>
       </EmployeeTaskForm>
 

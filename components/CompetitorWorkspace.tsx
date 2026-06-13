@@ -314,6 +314,22 @@ export function CompetitorWorkspace({ selectedGoal = "Improve my listing" }: { s
             />
           </label>
 
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="grid gap-2">
+              <span className="label">Observed competitor strength</span>
+              <input name="competitorStrength" className="field" placeholder="Example: lower price, better reviews, stronger images, clearer title" />
+            </label>
+            <label className="grid gap-2">
+              <span className="label">Your possible advantage</span>
+              <input name="ownAdvantage" className="field" placeholder="Example: better material, faster delivery, warranty, bundle, local stock" />
+            </label>
+          </div>
+
+          <label className="grid gap-2">
+            <span className="label">What decision should this analysis support</span>
+            <input name="decisionSupport" className="field" placeholder="Example: rewrite listing, adjust price, improve images, prepare launch plan" />
+          </label>
+
           <div className="rounded-lg border border-line bg-mist p-4">
             <div className="flex items-center gap-2 text-sm font-black text-navy">
               <ClipboardCheck className="h-4 w-4" />

@@ -671,6 +671,22 @@ export function ListingWorkspace({
 
           <div className="grid gap-4 md:grid-cols-2">
             <label className="grid gap-2">
+              <span className="label">Target buyer</span>
+              <input name="targetBuyer" className="field" placeholder="Example: home office users, Amazon bargain buyers, professional installers" />
+            </label>
+            <label className="grid gap-2">
+              <span className="label">Main selling angle</span>
+              <input name="mainSellingAngle" className="field" placeholder="Example: compact travel use, premium material, best value bundle" />
+            </label>
+          </div>
+
+          <label className="grid gap-2">
+            <span className="label">Claims to avoid</span>
+            <input name="claimsToAvoid" className="field" placeholder="Example: medical benefit, certified unless proven, waterproof, lifetime warranty" />
+          </label>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="grid gap-2">
               <span className="label">Main keywords</span>
               <textarea name="mainKeywords" className="field min-h-24 resize-y" placeholder="Example: laptop stand, notebook holder, ergonomic riser" />
             </label>

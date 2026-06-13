@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { Document, HeadingLevel, Packer, Paragraph, TextRun } from "docx";
+import { AlignmentType, BorderStyle, Document, HeadingLevel, Packer, Paragraph, ShadingType, TextRun } from "docx";
 import { employees } from "@/lib/data";
 import { createRequestClient } from "@/lib/supabase/request";
 import type { GeneratedTaskOutput } from "@/lib/task-output";
@@ -16,6 +16,21 @@ type TaskRecord = {
 
 function safeFileName(value: string) {
   return value.replace(/[^a-z0-9-_]+/gi, "-").replace(/^-+|-+$/g, "").slice(0, 80) || "linkorna-report";
+}
+
+function paragraphsFromBody(body: string) {
+  return String(body)
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map(
+      (line) =>
+        new Paragraph({
+          children: [new TextRun({ text: line, size: 22 })],
+          spacing: { after: 180 },
+          indent: /^\d+\./.test(line) ? { left: 360 } : undefined
+        })
+    );
 }
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -48,39 +63,80 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const sections = Array.isArray(output?.sections) ? output.sections : [];
 
   const doc = new Document({
+    styles: {
+      paragraphStyles: [
+        {
+          id: "Title",
+          name: "Title",
+          basedOn: "Normal",
+          next: "Normal",
+          quickFormat: true,
+          run: {
+            size: 36,
+            bold: true,
+            color: "071B4D"
+          },
+          paragraph: {
+            spacing: { after: 260 }
+          }
+        },
+        {
+          id: "Heading1",
+          name: "Heading 1",
+          basedOn: "Normal",
+          next: "Normal",
+          quickFormat: true,
+          run: {
+            size: 26,
+            bold: true,
+            color: "071B4D"
+          },
+          paragraph: {
+            spacing: { before: 300, after: 160 }
+          }
+        }
+      ]
+    },
     sections: [
       {
         properties: {},
         children: [
           new Paragraph({
             text: title,
-            heading: HeadingLevel.TITLE
+            heading: HeadingLevel.TITLE,
+            alignment: AlignmentType.LEFT
           }),
           new Paragraph({
             children: [
-              new TextRun({ text: `AI employee: ${employee?.name ?? task.employee_id}`, bold: true }),
-              new TextRun({ text: `\nGenerated: ${new Date(task.created_at).toLocaleString("en-GB")}` })
-            ]
+              new TextRun({ text: "LINKORNA AI Employee Report", bold: true, color: "1F6FEB", size: 22 })
+            ],
+            spacing: { after: 120 }
           }),
           new Paragraph({
-            text: output?.summary || "",
-            spacing: { after: 360 }
+            children: [
+              new TextRun({ text: `AI employee: ${employee?.name ?? task.employee_id}`, bold: true, size: 20 }),
+              new TextRun({ text: `   |   Generated: ${new Date(task.created_at).toLocaleString("en-GB")}`, size: 20 })
+            ],
+            spacing: { after: 220 }
+          }),
+          new Paragraph({
+            children: [new TextRun({ text: output?.summary || "", size: 22 })],
+            spacing: { after: 360 },
+            shading: {
+              type: ShadingType.CLEAR,
+              fill: "F4F7FB"
+            },
+            border: {
+              left: { style: BorderStyle.SINGLE, color: "22C55E", size: 12 }
+            },
+            indent: { left: 240 }
           }),
           ...sections.flatMap((section) => [
             new Paragraph({
               text: section.label,
               heading: HeadingLevel.HEADING_1
             }),
-            ...String(section.body)
-              .split(/\n+/)
-              .filter(Boolean)
-              .map(
-                (line) =>
-                  new Paragraph({
-                    text: line,
-                    spacing: { after: 180 }
-                  })
-              )
+            ...paragraphsFromBody(section.body)
           ])
         ]
       }

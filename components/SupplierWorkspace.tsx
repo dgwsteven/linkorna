@@ -236,11 +236,25 @@ export function SupplierWorkspace({ selectedLanguage = "English" }: { selectedLa
               <select name="productCategory" className="field">
                 <option>Machinery / components</option>
                 <option>Electronics</option>
+                <option>Electronics accessories</option>
+                <option>Computer and office accessories</option>
+                <option>Phone and tablet accessories</option>
+                <option>LED lighting</option>
+                <option>Solar / renewable energy products</option>
                 <option>Home and kitchen</option>
+                <option>Kitchen tools and gadgets</option>
+                <option>Small home appliances</option>
+                <option>Home organization</option>
                 <option>Furniture</option>
                 <option>Beauty and personal care</option>
+                <option>Health and wellness accessories</option>
                 <option>Pet products</option>
                 <option>Sports and outdoor</option>
+                <option>Tools and hardware</option>
+                <option>Automotive accessories</option>
+                <option>Fashion accessories</option>
+                <option>Baby products</option>
+                <option>Toys and gifts</option>
                 <option>Packaging</option>
                 <option>Custom product / other</option>
               </select>
@@ -276,6 +290,34 @@ export function SupplierWorkspace({ selectedLanguage = "English" }: { selectedLa
                 <option>Urgent sample request</option>
                 <option>Production deadline fixed</option>
                 <option>Other</option>
+              </select>
+            </label>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            <label className="grid gap-2">
+              <span className="label">Target unit price</span>
+              <input name="targetUnitPrice" className="field" placeholder="Optional, example: under 4.50 EUR" />
+            </label>
+            <label className="grid gap-2">
+              <span className="label">Payment preference</span>
+              <select name="paymentPreference" className="field">
+                <option>Not specified</option>
+                <option>30% deposit / 70% before shipment</option>
+                <option>PayPal for sample</option>
+                <option>Bank transfer</option>
+                <option>Letter of credit</option>
+                <option>Negotiate after quotation</option>
+              </select>
+            </label>
+            <label className="grid gap-2">
+              <span className="label">Supplier relationship</span>
+              <select name="supplierRelationship" className="field">
+                <option>New supplier</option>
+                <option>Existing supplier</option>
+                <option>Previous sample supplier</option>
+                <option>Price negotiation with known supplier</option>
+                <option>Problem solving after order</option>
               </select>
             </label>
           </div>

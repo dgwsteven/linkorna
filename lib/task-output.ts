@@ -24,24 +24,26 @@ export function buildTaskOutput(employeeId: string, input: Record<string, unknow
 
   if (employeeId === "contract") {
     const audience = value(input, "audience", "Chinese internal team - Chinese risk memo");
+    const isGerman = audience.includes("German");
+    const isEnglish = audience.includes("English");
+
     return {
       title,
       summary: `Contract review generated for ${audience}.`,
-      copySectionLabel: "Client-facing comments",
+      copySectionLabel: isGerman ? "Deutsche Kundenkommentare" : isEnglish ? "Client-facing comments" : "Internal risk memo",
       downloadLabel: "Download Word Report",
       sections: [
         {
-          label: audience.includes("German") ? "Deutsche Kundenkommentare" : audience.includes("English") ? "Client-facing comments" : "Internal risk memo",
-          body:
-            audience.includes("German")
-              ? "Wir empfehlen, Zahlungsmeilensteine, Abnahmefrist und Lieferdokumentation klarer zu definieren, damit beide Parteien dieselben operativen Erwartungen haben."
-              : audience.includes("English")
-                ? "We recommend clarifying payment milestones, acceptance window and delivery documentation so both parties share the same operational expectations."
-                : "付款节点、验收期限、交付文件和责任上限需要在签署前进一步明确。建议把内部风险意见和对外客户措辞分开处理。"
+          label: isGerman ? "Deutsche Kundenkommentare" : isEnglish ? "Client-facing comments" : "内部风险摘要",
+          body: isGerman
+            ? "Wir empfehlen, Zahlungsmeilensteine, Abnahmefrist und Lieferdokumentation klarer zu definieren, damit beide Parteien dieselben operativen Erwartungen haben."
+            : isEnglish
+              ? "We recommend clarifying payment milestones, acceptance window and delivery documentation so both parties share the same operational expectations."
+              : "付款节点、验收期限、交付文件和责任上限需要在签署前进一步明确。建议把内部风险判断和对外客户措辞分开处理。"
         },
         {
           label: "Clause-level actions",
-          body: "Payment terms, Incoterms, inspection procedure, warranty, liability cap, termination and dispute resolution should be reviewed clause by clause."
+          body: "Review payment terms, Incoterms, inspection procedure, warranty, liability cap, termination and dispute resolution clause by clause."
         },
         {
           label: "Negotiation wording",
@@ -53,12 +55,15 @@ export function buildTaskOutput(employeeId: string, input: Record<string, unknow
 
   if (employeeId === "supplier") {
     const language = value(input, "language", "English");
+    const task = value(input, "task", "the requested product");
+    const targetUnitPrice = value(input, "targetUnitPrice", "");
+    const priceLine = targetUnitPrice ? ` If possible, please also comment on whether a target unit price around ${targetUnitPrice} is realistic.` : "";
     const supplierEmail =
       language === "German"
-        ? "Sehr geehrte Damen und Herren, bitte senden Sie uns ein Angebot mit Stueckpreis, MOQ, Lieferzeit, Zahlungsbedingungen, Zertifikaten, Verpackungsdetails und Versandoptionen."
+        ? `Sehr geehrte Damen und Herren, wir pruefen aktuell Lieferanten fuer ${task}. Bitte senden Sie uns ein Angebot mit Stueckpreis, MOQ, Lieferzeit, Zahlungsbedingungen, verfuegbaren Zertifikaten, Verpackungsdetails und Versandoptionen.${priceLine}`
         : language === "Chinese"
-          ? "您好，请提供该产品的报价、MOQ、交期、付款条件、认证文件、包装信息和物流方案，方便我们进行供应商比较。"
-          : "Dear Supplier, please provide your quotation, MOQ, lead time, payment terms, certificates, packaging details and shipping options for the requested product.";
+          ? `您好，我们正在评估 ${task} 的供应商。请提供单价、MOQ、交期、付款条件、可提供的认证文件、包装信息以及物流方案。${targetUnitPrice ? `如果方便，也请说明目标单价 ${targetUnitPrice} 是否可行。` : ""}`
+          : `Dear Supplier, we are currently evaluating suppliers for ${task}. Please provide your quotation, MOQ, lead time, payment terms, available certificates, packaging details and shipping options.${priceLine}`;
 
     return {
       title,
@@ -68,12 +73,12 @@ export function buildTaskOutput(employeeId: string, input: Record<string, unknow
       sections: [
         { label: "Supplier email", body: supplierEmail },
         {
-          label: "Key explanation for user",
-          body: "This message gathers the core sourcing information in one request while keeping room for later negotiation."
+          label: "Input summary",
+          body: "The request is structured to collect price, MOQ, delivery timing, compliance documents, packaging and logistics in one supplier reply."
         },
         {
-          label: "Recommended next action",
-          body: "Compare supplier replies by MOQ, unit price, lead time, certifications, packaging and shipping terms before negotiating."
+          label: "Recommended next actions",
+          body: "Compare supplier replies by MOQ, unit price, lead time, certification availability, packaging quality and communication speed before negotiating."
         }
       ]
     };
@@ -83,7 +88,8 @@ export function buildTaskOutput(employeeId: string, input: Record<string, unknow
     const marketplace = value(input, "marketplace", "Amazon Germany");
     const language = value(input, "language", "Marketplace default");
     const positioning = value(input, "positioning", "Practical value");
-    const prefix = language === "German" ? "Verstellbarer Laptopstaender" : language === "Chinese" ? "可折叠铝合金笔记本支架" : "Foldable Aluminum Laptop Stand";
+    const productName = value(input, "productName", "Foldable Aluminum Laptop Stand");
+    const prefix = language === "German" ? "Verstellbarer Laptopstaender" : language === "Chinese" ? "可折叠铝合金笔记本支架" : productName;
 
     return {
       title,
@@ -108,6 +114,10 @@ export function buildTaskOutput(employeeId: string, input: Record<string, unknow
 
   if (employeeId === "competitor") {
     const goal = value(input, "goal", "Improve my listing");
+    const marketplace = value(input, "marketplace", "Amazon Germany");
+    const competitorLink = value(input, "competitorLink", "No competitor link provided");
+    const ownAdvantage = value(input, "ownAdvantage", "Not specified");
+
     return {
       title,
       summary: `Competitor analysis generated for ${goal}.`,
@@ -116,19 +126,19 @@ export function buildTaskOutput(employeeId: string, input: Record<string, unknow
       sections: [
         {
           label: "Competitor summary",
-          body: "The benchmark listing highlights practical benefits, price position and buyer trust cues. The next step is to compare these against your own listing."
+          body: `Marketplace: ${marketplace}\nCompetitor link: ${competitorLink}\nYour possible advantage: ${ownAdvantage}`
         },
         {
           label: "Gap analysis",
-          body: "Improve title keyword order, product compatibility, image explanation, FAQ, warranty language and offer clarity."
+          body: "Compare title keyword order, first image promise, bullet structure, price position, delivery promise, review objections, warranty language and trust signals."
         },
         {
           label: "Recommended actions",
-          body: "Use the competitor link as the Reference product link in E-commerce Listing Employee, then generate a platform-specific listing."
+          body: "1. Put the strongest buyer keyword at the start of the title.\n2. Turn competitor review objections into FAQ and image text.\n3. Make compatibility, package contents and warranty easier to scan.\n4. Choose a clear positioning angle before rewriting the listing."
         },
         {
           label: "Transfer to Listing Employee",
-          body: "Send benchmark link, recommended keywords, positioning and product-gap notes into the Listing Employee."
+          body: "Send benchmark link, recommended keywords, positioning and product-gap notes into the Listing Employee as reference material."
         }
       ]
     };
@@ -137,22 +147,24 @@ export function buildTaskOutput(employeeId: string, input: Record<string, unknow
   if (employeeId === "meeting") {
     const audience = value(input, "audience", "Chinese internal team");
     const detailLevel = value(input, "detailLevel", "Executive summary");
+    const chinese = audience.includes("Chinese");
+
     return {
       title,
       summary: `Meeting report generated for ${audience} with ${detailLevel}.`,
-      copySectionLabel: audience.includes("Chinese") ? "会议摘要" : "Meeting summary",
+      copySectionLabel: chinese ? "会议摘要" : "Meeting summary",
       downloadLabel: "Download Word Report",
       sections: [
         {
-          label: audience.includes("Chinese") ? "会议摘要" : "Meeting summary",
+          label: chinese ? "会议摘要" : "Meeting summary",
           body:
             detailLevel === "Detailed minutes"
-              ? "This detailed meeting summary should cover background, participant positions, discussion flow, key decisions, open risks, unresolved questions and next-step ownership in a complete report format."
-              : "This meeting focused on timeline, pricing, technical documents and next-step ownership."
+              ? "本次会议纪要应覆盖会议背景、各方立场、讨论过程、关键决定、未解决问题、风险事项和下一步责任人。"
+              : "This meeting summary focuses on decisions, open questions and next-step ownership."
         },
-        { label: audience.includes("Chinese") ? "关键决定" : "Key decisions", body: "Delivery target, revised quotation and technical documentation were confirmed as the main decision areas." },
-        { label: audience.includes("Chinese") ? "行动项" : "Action items", body: "Send revised quotation; confirm delivery date; provide technical files; assign owners and deadlines." },
-        { label: audience.includes("Chinese") ? "内部风险提示" : "Follow-up notes", body: "Keep internal risk notes separate from client-facing follow-up language." }
+        { label: chinese ? "关键决定" : "Key decisions", body: "List confirmed decisions separately from assumptions or topics that still require confirmation." },
+        { label: chinese ? "行动项" : "Action items", body: "Each action item should include owner, deadline, priority, dependency and expected output." },
+        { label: chinese ? "内部风险提示" : "Follow-up notes", body: "Keep internal risk notes separate from client-facing follow-up language." }
       ]
     };
   }

@@ -6,10 +6,17 @@ export async function extractFileValue(file: File) {
   };
 
   try {
-    const lowerName = file.name.toLowerCase();
-    const buffer = Buffer.from(await file.arrayBuffer());
+      const lowerName = file.name.toLowerCase();
+      const buffer = Buffer.from(await file.arrayBuffer());
 
-    if (lowerName.endsWith(".docx")) {
+      if (/\.(mp3|mp4|m4a|wav|mov|avi|webm)$/i.test(lowerName) || file.type.startsWith("audio/") || file.type.startsWith("video/")) {
+        return {
+          ...base,
+          extractionError: "Audio/video transcription is not enabled yet. Please paste or upload a readable meeting transcript."
+        };
+      }
+
+      if (lowerName.endsWith(".docx")) {
       const mammoth = await import("mammoth");
       const result = await mammoth.extractRawText({ buffer });
       return { ...base, extractedText: result.value.slice(0, 30000) };

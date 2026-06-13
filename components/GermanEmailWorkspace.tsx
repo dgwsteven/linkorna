@@ -258,6 +258,22 @@ export function GermanEmailWorkspace() {
             />
           </label>
 
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="grid gap-2">
+              <span className="label">What you want the client to do next</span>
+              <input name="desiredNextStep" className="field" placeholder="Example: confirm PO, pay deposit, approve sample, book meeting" />
+            </label>
+            <label className="grid gap-2">
+              <span className="label">Attachments or references</span>
+              <input name="attachmentsToMention" className="field" placeholder="Example: quotation, PI, datasheet, delivery schedule" />
+            </label>
+          </div>
+
+          <label className="grid gap-2">
+            <span className="label">Do not promise</span>
+            <input name="doNotPromise" className="field" placeholder="Example: exact delivery date, discount, warranty term, free shipping" />
+          </label>
+
           <div className="rounded-lg border border-line bg-mist p-4">
             <div className="flex items-center gap-2 text-sm font-black text-navy">
               <ClipboardCheck className="h-4 w-4" />
@@ -274,14 +290,8 @@ export function GermanEmailWorkspace() {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line p-5">
-          <div className="text-sm font-bold text-steel">Estimated output: reply, intent, risk, opportunity, next steps</div>
-          <div className="flex flex-wrap gap-3">
-            <button type="button" className="h-11 rounded-md border border-line bg-white px-5 text-sm font-black text-navy">
-              Save Draft
-            </button>
-            <FormSubmitButton idleLabel="Generate Reply" pendingLabel="German Email Employee is working..." />
-          </div>
+        <div className="flex justify-end border-t border-line p-5">
+          <FormSubmitButton idleLabel="Generate Reply" pendingLabel="German Email Employee is working..." />
         </div>
       </EmployeeTaskForm>
 

@@ -291,12 +291,22 @@ export function MeetingWorkspace({
 
         <div className="grid gap-5 p-5">
           <label className="grid gap-2">
-            <span className="label">Upload meeting files</span>
+            <span className="label">Upload transcript or meeting notes</span>
             <div className="flex min-h-28 items-center justify-center rounded-md border border-dashed border-line bg-mist p-4 text-center text-sm font-bold text-steel">
               <UploadCloud className="mr-2 h-5 w-5" />
-              Select multiple MP4, MP3, WAV, M4A or transcript files
+              Select TXT, DOCX or readable PDF meeting transcripts
             </div>
-            <input name="meetingFiles" className="sr-only" type="file" multiple accept=".mp4,.mp3,.wav,.m4a,.txt,.doc,.docx" />
+            <input name="meetingFiles" className="sr-only" type="file" multiple accept=".txt,.doc,.docx,.pdf" />
+            <span className="text-xs font-bold text-steel">Audio/video transcription will be added later. For now, upload or paste readable transcript text.</span>
+          </label>
+
+          <label className="grid gap-2">
+            <span className="label">Meeting transcript or rough notes</span>
+            <textarea
+              name="meetingTranscript"
+              className="field min-h-44 resize-y"
+              placeholder="Paste transcript, rough notes, chat export or meeting dialogue here. The more concrete the notes are, the better the minutes will be."
+            />
           </label>
 
           <label className="grid gap-2">

@@ -6,7 +6,15 @@ import { useEmployeeTaskPhase, useEmployeeTaskSubmitting } from "@/components/Em
 export function FormSubmitButton({ idleLabel, pendingLabel }: { idleLabel: string; pendingLabel?: string }) {
   const pending = useEmployeeTaskSubmitting();
   const phase = useEmployeeTaskPhase();
-  const label = phase === "checking" ? "Checking login..." : pendingLabel || "AI employee is working...";
+  const labelByPhase = {
+    checking: "Checking login...",
+    preparing: "Preparing material...",
+    analyzing: "Analyzing task...",
+    generating: pendingLabel || "Generating result...",
+    saving: "Saving result...",
+    redirecting: "Opening result..."
+  };
+  const label = phase === "idle" ? idleLabel : labelByPhase[phase];
 
   return (
     <button
